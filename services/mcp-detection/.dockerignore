@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+.env
+secrets.env
+rules/
+pipeline/rules/

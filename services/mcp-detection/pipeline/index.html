@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detection Coverage · MITRE ATT&CK Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0a0d12;
+    --panel:#10141c;
+    --panel-2:#161c28;
+    --panel-hover:#1b2230;
+    --hairline:#232a38;
+    --hairline-soft:#1a2029;
+    --text-hi:#e8ecf5;
+    --text-lo:#8a94a8;
+    --text-faint:#576078;
+    --gap:#1b212c;
+    --c-low:#dceefb;
+    --c-med:#7ab8e8;
+    --c-high:#2e75b6;
+    --c-crit:#0d2f5e;
+    --accent:#5fb4e8;
+    --accent-dim:#2c4a63;
+    --danger:#e8735f;
+    --font-sans:'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono:'IBM Plex Mono', 'SF Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--void);color:var(--text-hi);font-family:var(--font-sans);}
+  ::selection{background:var(--accent-dim);}
+
+  .wrap{max-width:1400px;margin:0 auto;padding:32px 28px 80px;}
+
+  /* ---------- header ---------- */
+  .topbar{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:28px;flex-wrap:wrap;}
+  .eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 6px;}
+  h1{font-size:26px;margin:0;font-weight:600;letter-spacing:-.01em;}
+  .subline{color:var(--text-lo);font-size:13px;margin-top:6px;}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;}
+
+  button.btn{
+    font-family:var(--font-sans);font-size:13px;font-weight:600;
+    border-radius:7px;padding:9px 16px;cursor:pointer;border:1px solid var(--hairline);
+    background:var(--panel-2);color:var(--text-hi);transition:.15s border-color, .15s background;
+  }
+  button.btn:hover{background:var(--panel-hover);border-color:#33405a;}
+  button.btn.primary{background:var(--accent);color:#06131c;border-color:var(--accent);}
+  button.btn.primary:hover{background:#7bc4f2;}
+  button.btn:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  /* ---------- KPI cards ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:26px;}
+  .kpi{background:var(--panel);border:1px solid var(--hairline);border-radius:10px;padding:18px 20px;}
+  .kpi-label{font-size:12px;color:var(--text-lo);}
+  .kpi-sub{font-size:11px;color:var(--text-faint);margin-top:2px;}
+  .kpi-value{font-family:var(--font-mono);font-size:38px;font-weight:600;margin:6px 0 2px;letter-spacing:-.02em;}
+  .kpi-value.accent{color:var(--accent);}
+
+  /* ---------- kill chain rail ---------- */
+  .rail-card{background:var(--panel);border:1px solid var(--hairline);border-radius:10px;padding:16px 20px 18px;margin-bottom:26px;}
+  .rail-title{font-size:12px;color:var(--text-lo);margin-bottom:12px;}
+  .rail{display:flex;align-items:center;overflow-x:auto;padding-bottom:4px;}
+  .rail-node{display:flex;flex-direction:column;align-items:center;flex:1 1 0;min-width:64px;cursor:pointer;position:relative;}
+  .rail-dot{width:12px;height:12px;border-radius:50%;background:var(--gap);border:2px solid var(--hairline);transition:.15s transform;}
+  .rail-node:hover .rail-dot{transform:scale(1.25);}
+  .rail-line{position:absolute;top:5px;left:-50%;width:100%;height:2px;background:var(--hairline);z-index:-1;}
+  .rail-node:first-child .rail-line{display:none;}
+  .rail-label{font-family:var(--font-mono);font-size:9.5px;color:var(--text-faint);margin-top:7px;text-align:center;line-height:1.25;max-width:78px;}
+  .rail-node.covered .rail-label{color:var(--text-lo);}
+
+  /* ---------- toolbar ---------- */
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+  .toolbar h2{font-size:15px;margin:0;font-weight:600;}
+  .toggle-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-lo);}
+  .switch{position:relative;width:34px;height:19px;background:var(--hairline);border-radius:20px;cursor:pointer;transition:.15s background;}
+  .switch.on{background:var(--accent-dim);}
+  .switch::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:var(--text-lo);transition:.15s transform, .15s background;}
+  .switch.on::after{transform:translateX(15px);background:var(--accent);}
+
+  /* ---------- tactic grid ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));gap:12px;}
+  .tcard{background:var(--panel);border:1px solid var(--hairline);border-radius:10px;overflow:hidden;scroll-margin-top:20px;}
+  .tcard.empty{opacity:.55;}
+  .tcard-head{padding:13px 14px 12px;border-bottom:1px solid var(--hairline-soft);}
+  .tcard-name{font-size:13.5px;font-weight:600;display:flex;justify-content:space-between;gap:8px;}
+  .tcard-tid{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);font-weight:400;}
+  .tcard-sub{font-size:11px;color:var(--text-lo);margin-top:4px;font-family:var(--font-mono);}
+  .tcard-bar{height:3px;background:var(--hairline-soft);border-radius:2px;margin-top:8px;overflow:hidden;}
+  .tcard-bar-fill{height:100%;background:var(--accent);border-radius:2px;}
+
+  .trow{padding:9px 14px;border-bottom:1px solid var(--hairline-soft);cursor:pointer;}
+  .trow:last-child{border-bottom:none;}
+  .trow:hover{background:var(--panel-hover);}
+  .trow-top{display:flex;align-items:center;gap:8px;}
+  .trow-dot{width:8px;height:8px;border-radius:2px;flex:0 0 auto;}
+  .trow-name{font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .trow-id{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);}
+  .trow-count{font-family:var(--font-mono);font-size:10.5px;color:var(--text-lo);background:var(--panel-2);border:1px solid var(--hairline);border-radius:20px;padding:1px 7px;flex:0 0 auto;}
+  .trow-rules{display:none;margin:8px 0 2px 16px;padding-left:10px;border-left:2px solid var(--hairline);}
+  .trow.expanded .trow-rules{display:block;}
+  .rule-item{font-size:11.5px;color:var(--text-lo);padding:3px 0;}
+  .rule-item::before{content:'› ';color:var(--text-faint);}
+
+  .no-rules{padding:16px 14px;font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);}
+  .unmapped-card{margin-top:6px;}
+  .unmapped-list{padding:4px 14px 6px;}
+
+  /* ---------- rule cards (enriched detail) ---------- */
+  .rule-card{background:var(--panel-2);border:1px solid var(--hairline);border-radius:8px;padding:10px 12px;cursor:default;}
+  .rule-card + .rule-card{margin-top:8px;}
+  .rule-card-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:2px;}
+  .rule-card-name{font-size:12.5px;font-weight:600;color:var(--text-hi);margin-right:2px;}
+  .pill{font-family:var(--font-mono);font-size:9.5px;padding:2px 7px;border-radius:20px;border:1px solid var(--hairline);color:var(--text-lo);background:var(--panel);white-space:nowrap;line-height:1.5;}
+  .pill.source{color:var(--accent);border-color:var(--accent-dim);}
+  .pill.severity-info{color:var(--text-faint);}
+  .pill.severity-low{color:var(--c-med);border-color:var(--accent-dim);}
+  .pill.severity-med{color:#e8c15f;border-color:#5a4d24;}
+  .pill.severity-high{color:#f2a15f;border-color:#5a3d24;}
+  .pill.severity-crit{color:var(--danger);border-color:#5a2c24;}
+  .pill.status-active{color:#7dd49a;border-color:#2b5240;}
+  .pill.status-disabled{color:var(--text-faint);}
+  .rule-desc{font-size:11.5px;color:var(--text-lo);line-height:1.45;margin:5px 0;}
+  .rule-meta{display:flex;flex-wrap:wrap;gap:4px 12px;margin:6px 0;font-size:10.5px;color:var(--text-faint);font-family:var(--font-mono);}
+  .rule-meta b{color:var(--text-lo);font-weight:500;}
+  .rule-actions{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0;}
+  .rule-actions .pill{color:var(--accent);border-color:var(--accent-dim);}
+  .rule-code-wrap{margin-top:9px;}
+  .rule-code-label{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);margin-bottom:4px;}
+  .copy-btn{font-family:var(--font-mono);font-size:9.5px;background:transparent;border:1px solid var(--hairline);color:var(--text-lo);border-radius:5px;padding:2px 9px;cursor:pointer;transition:.15s border-color,.15s color;}
+  .copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .copy-btn.copied{color:#7dd49a;border-color:#2b5240;}
+  .rule-code{background:var(--void);border:1px solid var(--hairline);border-radius:7px;padding:9px 11px;margin:0;overflow-x:auto;max-height:220px;overflow-y:auto;}
+  .rule-code code{font-family:var(--font-mono);font-size:11px;color:#c9d6ea;white-space:pre-wrap;word-break:break-word;}
+  .rule-more{margin-top:8px;font-size:10.5px;}
+  .rule-more summary{cursor:pointer;color:var(--text-faint);font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;list-style:none;}
+  .rule-more summary::-webkit-details-marker{display:none;}
+  .rule-more summary::before{content:'▸ ';}
+  .rule-more[open] summary::before{content:'▾ ';}
+  .rule-more summary:hover{color:var(--accent);}
+  .rule-more-grid{display:grid;grid-template-columns:max-content 1fr;gap:4px 10px;margin-top:7px;}
+  .rule-more-grid dt{color:var(--text-faint);font-family:var(--font-mono);font-size:10px;}
+  .rule-more-grid dd{margin:0;color:var(--text-lo);word-break:break-word;font-size:11px;}
+  .rule-also{margin-top:7px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;}
+  .rule-also-label{font-size:10px;color:var(--text-faint);font-family:var(--font-mono);}
+
+  /* ---------- modal ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(4,6,10,.65);display:none;align-items:center;justify-content:center;z-index:50;backdrop-filter:blur(2px);}
+  .overlay.show{display:flex;}
+  .modal{background:var(--panel);border:1px solid var(--hairline);border-radius:12px;width:420px;max-width:92vw;padding:22px 22px 20px;}
+  .modal h3{margin:0 0 4px;font-size:16px;}
+  .modal p.hint{color:var(--text-lo);font-size:12px;margin:0 0 18px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:11.5px;color:var(--text-lo);margin-bottom:5px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.04em;}
+  .field input, .field select{
+    width:100%;background:var(--void);border:1px solid var(--hairline);color:var(--text-hi);
+    border-radius:6px;padding:9px 10px;font-family:var(--font-sans);font-size:13px;
+  }
+  .field input:focus, .field select:focus{border-color:var(--accent);}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+  .rule-modal{width:560px;max-height:82vh;overflow-y:auto;padding:0 22px 22px;}
+  .rule-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;padding-top:20px;position:sticky;top:0;background:var(--panel);}
+  .rule-modal-head h3{margin:0;font-size:15px;word-break:break-word;}
+  .rule-modal-close{background:none;border:none;color:var(--text-lo);font-size:22px;line-height:1;cursor:pointer;padding:0 2px;flex:0 0 auto;}
+  .rule-modal-close:hover{color:var(--text-hi);}
+  .rule-modal .rule-card{border:none;padding:0;background:none;}
+
+  .rule-list-item{
+    display:flex;flex-direction:column;gap:6px;padding:10px 6px;cursor:pointer;
+    border-bottom:1px solid var(--hairline-soft);transition:.15s background;
+  }
+  .rule-list-item:last-child{border-bottom:none;}
+  .rule-list-item:hover{background:var(--panel-hover);}
+  .rule-list-top{display:flex;align-items:flex-start;gap:8px;}
+  .rule-list-name{flex:1 1 auto;font-size:12.5px;color:var(--text-hi);min-width:0;word-break:break-word;}
+  .rule-list-chevron{color:var(--text-faint);font-size:15px;flex:0 0 auto;line-height:1.4;}
+  .rule-list-pills{display:flex;gap:5px;flex-wrap:wrap;}
+  .err{color:var(--danger);font-size:11.5px;margin-top:-8px;margin-bottom:12px;display:none;}
+  .err.show{display:block;}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--hairline);color:var(--text-hi);
+    padding:10px 18px;border-radius:8px;font-size:12.5px;opacity:0;pointer-events:none;transition:.2s opacity, .2s transform;z-index:60;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+
+  footer{margin-top:34px;color:var(--text-faint);font-size:11px;font-family:var(--font-mono);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+
+  @media (max-width:640px){
+    .kpis{grid-template-columns:1fr;}
+    .rail-label{display:none;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Detection Engineering</p>
+      <h1 id="pageTitle">MITRE ATT&CK Rule Coverage</h1>
+      <p class="subline" id="subline">—</p>
+    </div>
+    <div class="actions">
+      <button class="btn" id="exportBtn">Export data.json</button>
+      <button class="btn primary" id="addBtn">+ Add Detection Rule</button>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-label">Technique coverage</div>
+      <div class="kpi-value accent" id="kpiCoverage">—</div>
+      <div class="kpi-sub" id="kpiCoverageSub">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Techniques mapped</div>
+      <div class="kpi-value" id="kpiTechniques">—</div>
+      <div class="kpi-sub">Unique T-codes with ≥1 rule</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Detection rules</div>
+      <div class="kpi-value" id="kpiRules">—</div>
+      <div class="kpi-sub">Unique rules, deduplicated across techniques</div>
+    </div>
+  </div>
+
+  <div class="rail-card">
+    <div class="rail-title">Kill-chain sequence — click a phase to jump to it</div>
+    <div class="rail" id="rail"></div>
+  </div>
+
+  <div class="toolbar">
+    <h2>Coverage by tactic</h2>
+    <div class="toggle-row">
+      <span>Hide empty tactics</span>
+      <div class="switch" id="hideEmptyToggle"></div>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="toolbar" id="unmappedToolbar" style="display:none;">
+    <h2>Unmapped rules</h2>
+  </div>
+  <div class="tcard unmapped-card" id="unmappedCard" style="display:none;">
+    <div class="tcard-head">
+      <div class="tcard-name"><span>No MITRE ATT&amp;CK mapping</span></div>
+      <div class="tcard-sub" id="unmappedSub">—</div>
+    </div>
+    <div class="unmapped-list" id="unmappedList"></div>
+  </div>
+
+  <footer>
+    <span id="genAt">—</span>
+    <span>Data source: <code>data.json</code> · edits are local until exported and committed</span>
+  </footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>Add detection rule</h3>
+    <p class="hint">Map a rule to its MITRE tactic and technique. New techniques are created automatically.</p>
+    <div class="field">
+      <label for="f-tactic">Tactic</label>
+      <select id="f-tactic"></select>
+    </div>
+    <div class="field">
+      <label for="f-tid">Technique ID</label>
+      <input id="f-tid" placeholder="e.g. T1059.001">
+    </div>
+    <div class="field">
+      <label for="f-tname">Technique name</label>
+      <input id="f-tname" placeholder="e.g. PowerShell">
+    </div>
+    <div class="field">
+      <label for="f-rule">Detection rule name</label>
+      <input id="f-rule" placeholder="e.g. Encoded PowerShell Execution">
+    </div>
+    <div class="err" id="formErr">All fields are required.</div>
+    <div class="modal-actions">
+      <button class="btn" id="cancelBtn">Cancel</button>
+      <button class="btn primary" id="saveBtn">Add rule</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ruleOverlay">
+  <div class="modal rule-modal">
+    <div class="rule-modal-head">
+      <h3 id="ruleModalTitle">Rule detail</h3>
+      <button class="rule-modal-close" id="ruleModalClose" type="button" aria-label="Close">&times;</button>
+    </div>
+    <div id="ruleModalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------------------------------------------------------
+   Data loading: try live data.json first (works once deployed to
+   GitLab Pages / any real HTTP server). Falls back to the embedded
+   snapshot below when opened as a single file or previewed sandboxed.
+--------------------------------------------------------------- */
+const EMBEDDED_DATA = {"generatedAt": "Generated 2026-05-20 11:32 | 37 rules | 38 techniques", "sourceName": "Detection Rules Coverage", "tactics": [{"id": "reconnaissance", "name": "Reconnaissance", "tacticId": "TA0043", "techniques": [{"techniqueId": "T1046", "name": "Network Service Discovery", "score": 3, "color": "#7ab8e8", "rules": ["Port Spraying Activity from External Network", "Port Spraying Activity from Internal Network", "FGT UTM: IPS Event"]}], "ruleCount": 3, "techniqueCount": 1}, {"id": "resource-development", "name": "Resource Development", "tacticId": "TA0042", "techniques": [], "ruleCount": 0, "techniqueCount": 0}, {"id": "initial-access", "name": "Initial Access", "tacticId": "TA0001", "techniques": [{"techniqueId": "T1110", "name": "Brute Force", "score": 1, "color": "#dceefb", "rules": ["Multiple Failed Logons From Public IP"]}, {"techniqueId": "T1190", "name": "Exploit Public-Facing Application", "score": 1, "color": "#dceefb", "rules": ["FGT UTM: IPS Event"]}, {"techniqueId": "T1133,T1078", "name": "T1133,T1078", "score": 1, "color": "#dceefb", "rules": ["VPN Geography Change"]}, {"techniqueId": "T1078", "name": "Valid Accounts", "score": 1, "color": "#dceefb", "rules": ["VPN Login \u2013 User Access from New Device"]}], "ruleCount": 4, "techniqueCount": 4}, {"id": "execution", "name": "Execution", "tacticId": "TA0002", "techniques": [{"techniqueId": "T1203", "name": "Exploitation for Client Execution", "score": 1, "color": "#dceefb", "rules": ["FGT UTM: IPS Event"]}], "ruleCount": 1, "techniqueCount": 1}, {"id": "persistence", "name": "Persistence", "tacticId": "TA0003", "techniques": [{"techniqueId": "T1098", "name": "Account Manipulation", "score": 2, "color": "#dceefb", "rules": ["Firewall User Privilege Escalation to Admin", "Firewall policy change at non-work hours"]}, {"techniqueId": "T1136.001", "name": "Local Account", "score": 1, "color": "#dceefb", "rules": ["Firewall Management User Account Created/Deleted"]}], "ruleCount": 3, "techniqueCount": 2}, {"id": "privilege-escalation", "name": "Privilege Escalation", "tacticId": "TA0004", "techniques": [{"techniqueId": "T1078", "name": "Valid Accounts", "score": 2, "color": "#dceefb", "rules": ["Multiple SIEM Detection Rules Disabled", "Multiple Failed Login Attempts to SIEM"]}], "ruleCount": 2, "techniqueCount": 1}, {"id": "stealth", "name": "Defense Evasion", "tacticId": "TA0005", "techniques": [{"techniqueId": "T1090", "name": "Proxy", "score": 2, "color": "#dceefb", "rules": ["VPN Geography Change", "Encrypted Tunnel Usage  to External Network"]}, {"techniqueId": "T1531", "name": "Account Access Removal", "score": 1, "color": "#dceefb", "rules": ["Firewall Management User Account Created/Deleted"]}, {"techniqueId": "T1562.004", "name": "Disable or Modify System Firewall", "score": 1, "color": "#dceefb", "rules": ["Firewall policy change at non-work hours"]}, {"techniqueId": "T1562.001", "name": "Disable or Modify Tools", "score": 1, "color": "#dceefb", "rules": ["Multiple SIEM Detection Rules Disabled"]}, {"techniqueId": "T1562.003", "name": "Impair Command History Logging", "score": 1, "color": "#dceefb", "rules": ["DNS Query Length With High Standard Deviation"]}, {"techniqueId": "T1562", "name": "Impair Defenses", "score": 1, "color": "#dceefb", "rules": ["Multiple SIEM Detection Rules Disabled"]}], "ruleCount": 6, "techniqueCount": 6}, {"id": "credential-access", "name": "Credential Access", "tacticId": "TA0006", "techniques": [{"techniqueId": "T1110", "name": "Brute Force", "score": 1, "color": "#dceefb", "rules": ["Firewall Management Authentication Failures"]}, {"techniqueId": "T1110.001", "name": "Password Guessing", "score": 1, "color": "#dceefb", "rules": ["Multiple Failed Login Attempts to SIEM"]}, {"techniqueId": "T1110.003", "name": "Password Spraying", "score": 1, "color": "#dceefb", "rules": ["Multiple Failed Login Attempts to SIEM"]}, {"techniqueId": "T1078", "name": "Valid Accounts", "score": 1, "color": "#dceefb", "rules": ["Unauthorized Access to Other's Sharefolder"]}], "ruleCount": 3, "techniqueCount": 4}, {"id": "discovery", "name": "Discovery", "tacticId": "TA0007", "techniques": [{"techniqueId": "T1046", "name": "Network Service Discovery", "score": 3, "color": "#7ab8e8", "rules": ["Network Spike Detected from \"Incoming Traffic\" Dashboard", "Network Spike Detected from \"Outgoing Traffic\" Dashboard", "Excessive Allowed/Blocked Actions Observed"]}, {"techniqueId": "T1087.002", "name": "Domain Account", "score": 1, "color": "#dceefb", "rules": ["Network Traffic to Active Directory Web Services Protocol"]}], "ruleCount": 4, "techniqueCount": 2}, {"id": "lateral-movement", "name": "Lateral Movement", "tacticId": "TA0008", "techniques": [{"techniqueId": "T1021", "name": "Remote Services", "score": 3, "color": "#7ab8e8", "rules": ["Allowed Remote Management Protocol Traffic to Internet", "Allowed Traffic from Guest Wi-Fi to Internal Network", "Allowed Traffic from DMZ to Internal Network"]}, {"techniqueId": "T1021.002", "name": "SMB/Windows Admin Shares", "score": 3, "color": "#7ab8e8", "rules": ["SMB Traffic Spike from Single Host", "Suspicious SMB Traffic Across Multiple Hosts", "Allowed File-Sharing Protocol Traffic to Internet"]}, {"techniqueId": "T1210", "name": "Exploitation of Remote Services", "score": 1, "color": "#dceefb", "rules": ["FGT UTM: IPS Event"]}, {"techniqueId": "T1021.004", "name": "SSH", "score": 1, "color": "#dceefb", "rules": ["SSH traffic using unusual port"]}], "ruleCount": 8, "techniqueCount": 4}, {"id": "collection", "name": "Collection", "tacticId": "TA0009", "techniques": [{"techniqueId": "T1560", "name": "Archive Collected Data", "score": 1, "color": "#dceefb", "rules": ["Allowed File-Sharing Protocol Traffic to Internet"]}, {"techniqueId": "T1039", "name": "Data from Network Shared Drive", "score": 1, "color": "#dceefb", "rules": ["Unauthorized Access to Other's Sharefolder"]}], "ruleCount": 2, "techniqueCount": 2}, {"id": "command-and-control", "name": "Command And Control", "tacticId": "TA0011", "techniques": [{"techniqueId": "T1071.004,T1568", "name": "Application Layer Protocol", "score": 3, "color": "#7ab8e8", "rules": ["DNS Traffic Spike from Single Host", "Suspicious DNS Traffic Across Multiple Hosts", "Possible DNS Tunnelling Attempt"]}, {"techniqueId": "T1071", "name": "Application Layer Protocol", "score": 2, "color": "#dceefb", "rules": ["Allowed Remote Management Protocol Traffic to Internet", "Suspicious Traffic to/from Tor Exit Node"]}, {"techniqueId": "T1071.004", "name": "DNS", "score": 2, "color": "#dceefb", "rules": ["Cobalt Strike DNS Beaconing Detected", "DNS Query Length With High Standard Deviation"]}, {"techniqueId": "T1041", "name": "Exfiltration Over C2 Channel", "score": 2, "color": "#dceefb", "rules": ["DNS Query Length With High Standard Deviation", "Encrypted Tunnel Usage  to External Network"]}, {"techniqueId": "T1572", "name": "Protocol Tunneling", "score": 2, "color": "#dceefb", "rules": ["SSH traffic using unusual port", "Encrypted Tunnel Usage  to External Network"]}, {"techniqueId": "T1090.003", "name": "Multi-hop Proxy", "score": 1, "color": "#dceefb", "rules": ["Suspicious Traffic to/from Tor Exit Node"]}, {"techniqueId": "T1571", "name": "Non-Standard Port", "score": 1, "color": "#dceefb", "rules": ["SSH traffic using unusual port"]}, {"techniqueId": "T1090", "name": "Proxy", "score": 1, "color": "#dceefb", "rules": ["Allowed Traffic from DMZ to Internal Network"]}], "ruleCount": 10, "techniqueCount": 8}, {"id": "exfiltration", "name": "Exfiltration", "tacticId": "TA0010", "techniques": [{"techniqueId": "T1048.003", "name": "Exfiltration Over Unencrypted Non-C2 Protocol", "score": 3, "color": "#7ab8e8", "rules": ["DNS Traffic Spike from Single Host", "Suspicious DNS Traffic Across Multiple Hosts", "Possible DNS Tunnelling Attempt"]}, {"techniqueId": "T1048.002", "name": "Exfiltration Over Asymmetric Encrypted Non-C2 Protocol", "score": 1, "color": "#dceefb", "rules": ["Allowed File-Sharing Protocol Traffic to Internet"]}, {"techniqueId": "T1496", "name": "Resource Hijacking", "score": 1, "color": "#dceefb", "rules": ["Monero Crypto Coin Mining Pool Lookup"]}], "ruleCount": 5, "techniqueCount": 3}, {"id": "impact", "name": "Impact", "tacticId": "TA0040", "techniques": [], "ruleCount": 0, "techniqueCount": 0}], "stats": {"uniqueTechniques": 33, "uniqueRules": 32, "tacticsCovered": 12, "tacticsTotal": 14}, "gradient": {"colors": ["#dceefb", "#7ab8e8", "#2e75b6", "#0d2f5e"], "minValue": 1, "maxValue": 3}};
+
+const CANON_TACTICS = EMBEDDED_DATA.tactics.map(t => ({id:t.id, name:t.name, tacticId:t.tacticId}));
+
+let state = null;
+
+async function loadData(){
+  try{
+    const res = await fetch('./data.json', {cache:'no-store'});
+    if(res.ok){
+      state = await res.json();
+      return;
+    }
+  }catch(e){ /* fetch unavailable (sandboxed preview / file:// ) */ }
+  state = JSON.parse(JSON.stringify(EMBEDDED_DATA));
+}
+
+function scoreColor(count){
+  if(count <= 0) return null;
+  if(count <= 2) return getVar('--c-low');
+  if(count <= 5) return getVar('--c-med');
+  if(count <= 8) return getVar('--c-high');
+  return getVar('--c-crit');
+}
+function getVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+/* Same authoritative per-tactic totals as the Python generator (see that
+   file's comment for source/date/caveats) -- used as a fallback when a
+   tactic object doesn't already carry its own techniquesTotal (e.g. an
+   older data.json, or a tactic added purely client-side). */
+const TACTIC_TECHNIQUE_TOTALS = {
+  'reconnaissance': 12, 'resource-development': 9, 'initial-access': 11,
+  'execution': 20, 'persistence': 22, 'privilege-escalation': 13,
+  'stealth': 30, 'credential-access': 17, 'discovery': 34,
+  'lateral-movement': 9, 'collection': 17, 'command-and-control': 18,
+  'exfiltration': 9, 'impact': 15
+};
+
+/* rules are enriched objects (or, for manually-added ones, plain
+   strings) -- this gives a stable dedup/identity key either way */
+function ruleKey(r){
+  if(typeof r === 'string') return r;
+  return r._displayName || r.name || 'Unnamed rule';
+}
+
+function recompute(){
+  state.tactics.forEach(tac=>{
+    tac.techniques.forEach(te=>{ te.color = scoreColor(te.rules.length) || getVar('--c-low'); te.score = te.rules.length; });
+    tac.techniques.sort((a,b)=> b.rules.length - a.rules.length || a.name.localeCompare(b.name));
+    tac.techniqueCount = tac.techniques.length;
+    tac.ruleCount = new Set(tac.techniques.flatMap(t=>t.rules.map(ruleKey))).size;
+    const total = (typeof tac.techniquesTotal === 'number') ? tac.techniquesTotal : TACTIC_TECHNIQUE_TOTALS[tac.id];
+    tac.techniquesTotal = total || null;
+    tac.coveragePct = total ? Math.round((tac.techniqueCount / total) * 100) : null;
+  });
+  const allTechIds = new Set(state.tactics.flatMap(t=>t.techniques.map(x=>x.techniqueId)));
+  const allRules = new Set(state.tactics.flatMap(t=>t.techniques.flatMap(x=>x.rules.map(ruleKey))));
+  const tacticsCovered = state.tactics.filter(t=>t.techniqueCount>0).length;
+  // Top-level technique IDs only (strip sub-technique suffix, split comma-joined multi-IDs)
+  // for comparison against the ~201 top-level techniques in MITRE ATT&CK Enterprise.
+  const topLevelIds = new Set(
+    [...allTechIds].flatMap(id => id.split(',').map(x => x.trim().split('.')[0]))
+  );
+  state.stats = {
+    uniqueTechniques: allTechIds.size,
+    uniqueRules: allRules.size,
+    tacticsCovered,
+    tacticsTotal: state.tactics.length,
+    techniquesCovered: topLevelIds.size,
+    // 222 active top-level (non-sub-technique) techniques across the whole
+    // Enterprise matrix as of this writing -- see TACTIC_TECHNIQUE_TOTALS
+    // above for source/date; update both together if you refresh the data.
+    techniquesTotal: 222,
+  };
+}
+
+let hideEmpty = false;
+
+function render(){
+  recompute();
+  document.getElementById('subline').textContent = state.sourceName || 'Detection Rules Coverage';
+  document.getElementById('genAt').textContent = state.generatedAt || '';
+
+  const s = state.stats;
+  const pct = Math.round((s.techniquesCovered / s.techniquesTotal) * 100);
+  document.getElementById('kpiCoverage').textContent = pct + '%';
+  document.getElementById('kpiCoverageSub').textContent = `${s.techniquesCovered} of ${s.techniquesTotal} MITRE techniques have a mapped rule`;
+  document.getElementById('kpiTechniques').textContent = s.uniqueTechniques;
+  document.getElementById('kpiRules').textContent = s.uniqueRules;
+
+  renderRail();
+  renderGrid();
+  renderUnmapped();
+}
+
+function renderRail(){
+  const rail = document.getElementById('rail');
+  rail.innerHTML = '';
+  state.tactics.forEach(tac=>{
+    const node = document.createElement('div');
+    node.className = 'rail-node' + (tac.techniqueCount>0 ? ' covered' : '');
+    const line = document.createElement('div'); line.className='rail-line';
+    const dot = document.createElement('div'); dot.className='rail-dot';
+    if(tac.techniqueCount>0) dot.style.background = scoreColor(tac.ruleCount) || 'var(--c-low)';
+    const label = document.createElement('div'); label.className='rail-label'; label.textContent = tac.name;
+    node.appendChild(line); node.appendChild(dot); node.appendChild(label);
+    node.title = `${tac.name}: ${tac.techniqueCount}${tac.techniquesTotal ? '/'+tac.techniquesTotal : ''} technique(s)${tac.coveragePct!==null ? ' ('+tac.coveragePct+'% coverage)' : ''}, ${tac.ruleCount} rule(s)`;
+    node.addEventListener('click', ()=>{
+      const target = document.getElementById('tac-'+tac.id);
+      if(target) target.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto':'smooth', block:'center'});
+    });
+    rail.appendChild(node);
+  });
+}
+
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  state.tactics.forEach(tac=>{
+    if(hideEmpty && tac.techniqueCount===0) return;
+    const card = document.createElement('div');
+    card.className = 'tcard' + (tac.techniqueCount===0 ? ' empty':'');
+    card.id = 'tac-'+tac.id;
+
+    const head = document.createElement('div');
+    head.className = 'tcard-head';
+    head.innerHTML = `
+      <div class="tcard-name"><span>${escapeHtml(tac.name)}</span><span class="tcard-tid">${tac.tacticId||''}</span></div>
+      <div class="tcard-sub">${tac.techniqueCount}${tac.techniquesTotal ? '/'+tac.techniquesTotal : ''} technique${tac.techniqueCount===1?'':'s'}${tac.coveragePct!==null ? ' · '+tac.coveragePct+'% coverage' : ''} · ${tac.ruleCount} rule${tac.ruleCount===1?'':'s'}</div>
+      ${tac.coveragePct!==null ? `<div class="tcard-bar"><div class="tcard-bar-fill" style="width:${tac.coveragePct}%"></div></div>` : ''}
+    `;
+    card.appendChild(head);
+
+    if(tac.techniqueCount===0){
+      const empty = document.createElement('div');
+      empty.className = 'no-rules';
+      empty.textContent = 'No rules mapped yet';
+      card.appendChild(empty);
+    } else {
+      tac.techniques.forEach(te=>{
+        const row = document.createElement('div');
+        row.className = 'trow';
+
+        const top = document.createElement('div');
+        top.className = 'trow-top';
+        top.innerHTML = `
+          <span class="trow-dot" style="background:${te.color}"></span>
+          <span class="trow-name" title="${escapeHtml(te.name)}">${escapeHtml(te.name)}</span>
+          <span class="trow-id">${te.techniqueId}</span>
+          <span class="trow-count">${te.rules.length}</span>
+        `;
+        row.appendChild(top);
+
+        // Expanding a technique shows a compact list of its rules -- tap a
+        // rule to open its full metadata in a popup, rather than dumping
+        // every rule's full detail inline.
+        const rulesWrap = document.createElement('div');
+        rulesWrap.className = 'trow-rules';
+        te.rules.forEach(r=>{
+          rulesWrap.appendChild(renderRuleListItem(r, te.techniqueId));
+        });
+        row.appendChild(rulesWrap);
+
+        top.addEventListener('click', ()=> row.classList.toggle('expanded'));
+        card.appendChild(row);
+      });
+    }
+    grid.appendChild(card);
+  });
+}
+
+function renderUnmapped(){
+  const toolbar = document.getElementById('unmappedToolbar');
+  const card = document.getElementById('unmappedCard');
+  const list = document.getElementById('unmappedList');
+  const rules = state.unmappedRules || [];
+
+  if(!rules.length){
+    toolbar.style.display = 'none';
+    card.style.display = 'none';
+    return;
+  }
+
+  toolbar.style.display = '';
+  card.style.display = '';
+  document.getElementById('unmappedSub').textContent =
+    `${rules.length} rule${rules.length===1?'':'s'} with no usable MITRE ATT&CK tactic/technique mapping — tap a rule for details`;
+
+  list.innerHTML = '';
+  rules.forEach(r=>{
+    list.appendChild(renderRuleListItem(r, null));
+  });
+}
+
+/* ---------------- rule card rendering ----------------
+   Rules arrive as the full original rule object (Splunk, Falcon, or
+   whatever future source) plus a few underscore-prefixed bookkeeping
+   fields (_displayName, _customer, _source). Known fields get nice
+   treatment (pills, meta chips, a code block for the search/filter);
+   anything else the source happens to include still surfaces in the
+   "More fields" expander, so no source-specific schema is required. */
+const SEARCH_KEYS = ['search', 'search_filter', 'query', 'spl_query'];
+const META_ORDER = [
+  'owner', 'app', 'sharing', 'cron_schedule', 'schedule_definition',
+  'search_lookback', 'search_outcome', 'search_trigger_mode',
+  'correlation_search_label', 'confidence', 'created_on', 'start_on',
+  'stop_on', 'updated'
+];
+const FIELD_LABELS = {
+  alert_severity:'Severity', severity:'Severity', app:'App', owner:'Owner',
+  updated:'Updated', created_on:'Created', start_on:'Starts', stop_on:'Stops',
+  cron_schedule:'Schedule', schedule_definition:'Schedule',
+  search_lookback:'Lookback', search_outcome:'Outcome',
+  search_trigger_mode:'Trigger mode', correlation_search_label:'Correlation label',
+  confidence:'Confidence', sharing:'Sharing', is_correlation_search:'Correlation search',
+  cis:'CIS', nist:'NIST', kill_chain_phases:'Kill chain phases',
+  status:'Status', disabled:'Disabled', search:'SPL Search', search_filter:'Search Filter'
+};
+const SUPPRESS_KEYS = new Set([
+  'name', 'mitre_attack', '_displayName', '_customer', '_source',
+  'id', 'customer_id', 'user_id', 'user_uuid', 'tactic', 'technique',
+  'alert_type', 'alert_comparator', 'alert_threshold',
+  'description', 'comment', 'actions', 'status', 'disabled',
+  'severity', 'alert_severity',
+  ...SEARCH_KEYS, ...META_ORDER
+]);
+
+function labelFor(key){
+  return FIELD_LABELS[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+function isEmpty(v){
+  return v===null || v===undefined || v==='' || (Array.isArray(v) && v.length===0);
+}
+
+/* Severity scales differ by source and don't share a common raw number,
+   so map each onto the same Informational/Low/Medium/High/Critical band:
+   - Splunk `alert_severity` is savedsearches.conf's alert.severity setting
+     (1-debug, 2-info, 3-warn, 4-error, 5-severe, 6-fatal by default, though
+     many orgs repurpose it as a plain 1-5 business-severity scale).
+   - Falcon/NG-SIEM `severity` uses enumerated values 10/30/50/70/90 for
+     Informational/Low/Medium/High/Critical.
+   Banded (not exact-match) so odd/in-between values still land somewhere
+   sensible. */
+function severityInfo(r){
+  // Falcon/NG-SIEM `severity` (enumerated 10/30/50/70/90) takes priority
+  // when both fields happen to be present, since it's the unambiguous scale.
+  if(!isEmpty(r.severity)){
+    const n = Number(r.severity);
+    if(Number.isNaN(n)) return {text: String(r.severity), cls: '', label: String(r.severity)};
+    let label, cls;
+    if(n < 20){ label='Informational'; cls=' severity-info'; }
+    else if(n < 40){ label='Low'; cls=' severity-low'; }
+    else if(n < 60){ label='Medium'; cls=' severity-med'; }
+    else if(n < 80){ label='High'; cls=' severity-high'; }
+    else { label='Critical'; cls=' severity-crit'; }
+    return {text: `${label} (${n})`, cls, label};
+  }
+  // Splunk `alert_severity` (savedsearches.conf alert.severity, 1-6 scale;
+  // most orgs use it as a 1-5 business-severity scale).
+  if(!isEmpty(r.alert_severity)){
+    const n = Number(r.alert_severity);
+    if(Number.isNaN(n)) return {text: String(r.alert_severity), cls: '', label: String(r.alert_severity)};
+    let label, cls;
+    if(n <= 1){ label='Informational'; cls=' severity-info'; }
+    else if(n === 2){ label='Low'; cls=' severity-low'; }
+    else if(n === 3){ label='Medium'; cls=' severity-med'; }
+    else if(n === 4){ label='High'; cls=' severity-high'; }
+    else { label='Critical'; cls=' severity-crit'; }
+    return {text: `${label} (${n})`, cls, label};
+  }
+  return null;
+}
+
+/* Compact, clickable row shown inside an expanded technique -- tap it to
+   open the full rule detail (renderRuleCard's output) in a popup. */
+function renderRuleListItem(r, techniqueId){
+  if(typeof r === 'string') r = {name: r};
+  const item = document.createElement('div');
+  item.className = 'rule-list-item';
+
+  let pills = '';
+  const sev = severityInfo(r);
+  if(sev) pills += `<span class="pill${sev.cls}">${escapeHtml(sev.label)}</span>`;
+  if(r._customer || r._source){
+    pills += `<span class="pill source">${escapeHtml([r._customer, r._source].filter(Boolean).join(' / '))}</span>`;
+  }
+  if(r.disabled !== undefined){
+    pills += r.disabled
+      ? `<span class="pill status-disabled">Disabled</span>`
+      : `<span class="pill status-active">Enabled</span>`;
+  } else if(!isEmpty(r.status)){
+    pills += `<span class="pill status-${r.status==='active' ? 'active' : 'disabled'}">${escapeHtml(r.status)}</span>`;
+  }
+
+  item.innerHTML = `
+    <div class="rule-list-top">
+      <span class="rule-list-name">${escapeHtml(r.name || r._displayName || 'Unnamed rule')}</span>
+      <span class="rule-list-chevron">›</span>
+    </div>
+    <div class="rule-list-pills">${pills}</div>
+  `;
+  item.addEventListener('click', e=>{
+    e.stopPropagation();
+    openRuleModal(r, techniqueId);
+  });
+  return item;
+}
+
+function renderRuleCard(r, currentTechniqueId){
+  if(typeof r === 'string') r = {name: r};
+  const name = escapeHtml(r.name || r._displayName || 'Unnamed rule');
+
+  let pills = '';
+  if(r._customer || r._source){
+    pills += `<span class="pill source">${escapeHtml([r._customer, r._source].filter(Boolean).join(' / '))}</span>`;
+  }
+  const sev = severityInfo(r);
+  if(sev){
+    pills += `<span class="pill${sev.cls}">${escapeHtml(sev.text)}</span>`;
+  }
+  if(!isEmpty(r.status)){
+    pills += `<span class="pill status-${r.status==='active' ? 'active' : 'disabled'}">${escapeHtml(r.status)}</span>`;
+  }
+  if(r.disabled !== undefined){
+    pills += r.disabled
+      ? `<span class="pill status-disabled">Disabled</span>`
+      : `<span class="pill status-active">Enabled</span>`;
+  }
+  if(!isEmpty(r.app)) pills += `<span class="pill">${escapeHtml(r.app)}</span>`;
+
+  let html = `<div class="rule-card">
+    <div class="rule-card-head">
+      <span class="rule-card-name">${name}</span>
+      ${pills}
+    </div>`;
+
+  const desc = r.description || r.comment;
+  if(!isEmpty(desc)){
+    html += `<div class="rule-desc">${escapeHtml(desc)}</div>`;
+  }
+
+  if(!isEmpty(r.alert_type) && !isEmpty(r.alert_comparator) && !isEmpty(r.alert_threshold)){
+    html += `<div class="rule-desc">Alerts when ${escapeHtml(r.alert_type)} is ${escapeHtml(r.alert_comparator)} ${escapeHtml(String(r.alert_threshold))}</div>`;
+  }
+
+  const metaItems = [];
+  META_ORDER.forEach(key=>{
+    if(!isEmpty(r[key])) metaItems.push(`<span><b>${escapeHtml(labelFor(key))}:</b> ${escapeHtml(String(r[key]))}</span>`);
+  });
+  if(metaItems.length) html += `<div class="rule-meta">${metaItems.join('')}</div>`;
+
+  if(!isEmpty(r.actions)){
+    const acts = String(r.actions).split(',').map(a=>a.trim()).filter(Boolean);
+    if(acts.length) html += `<div class="rule-actions">${acts.map(a=>`<span class="pill">${escapeHtml(a)}</span>`).join('')}</div>`;
+  }
+
+  const searchKey = SEARCH_KEYS.find(k=> !isEmpty(r[k]));
+  if(searchKey){
+    const codeText = String(r[searchKey]);
+    html += `<div class="rule-code-wrap">
+      <div class="rule-code-label"><span>${escapeHtml(labelFor(searchKey))}</span><button class="copy-btn" type="button" data-copy-text="${escapeHtml(codeText)}">Copy</button></div>
+      <pre class="rule-code"><code>${escapeHtml(codeText)}</code></pre>
+    </div>`;
+  }
+
+  if(Array.isArray(r.mitre_attack) && r.mitre_attack.length){
+    const others = r.mitre_attack.filter(entry => entry.split(':')[1] !== currentTechniqueId);
+    if(others.length){
+      html += `<div class="rule-also"><span class="rule-also-label">Also mapped:</span>${others.map(o=>`<span class="pill">${escapeHtml(o)}</span>`).join('')}</div>`;
+    }
+  }
+
+  const leftover = Object.keys(r).filter(k => !SUPPRESS_KEYS.has(k) && !isEmpty(r[k]));
+  if(leftover.length){
+    html += `<details class="rule-more"><summary>More fields (${leftover.length})</summary><dl class="rule-more-grid">`;
+    leftover.forEach(k=>{
+      let val = r[k];
+      if(Array.isArray(val)) val = val.join(', ');
+      html += `<dt>${escapeHtml(labelFor(k))}</dt><dd>${escapeHtml(String(val))}</dd>`;
+    });
+    html += `</dl></details>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+function copyToClipboard(text, btn){
+  const done = ()=>{
+    const original = btn.textContent;
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent = original; btn.classList.remove('copied'); }, 1400);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=> fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+function fallbackCopy(text, done){
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    done();
+  }catch(e){ /* clipboard unavailable in this context -- ignore */ }
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------------- toggle ---------------- */
+document.getElementById('hideEmptyToggle').addEventListener('click', function(){
+  hideEmpty = !hideEmpty;
+  this.classList.toggle('on', hideEmpty);
+  renderGrid();
+});
+
+/* ---------------- rule detail modal ---------------- */
+const ruleOverlay = document.getElementById('ruleOverlay');
+const ruleModalTitle = document.getElementById('ruleModalTitle');
+const ruleModalBody = document.getElementById('ruleModalBody');
+
+function openRuleModal(r, techniqueId){
+  ruleModalTitle.textContent = r.name || r._displayName || 'Unnamed rule';
+  ruleModalBody.innerHTML = renderRuleCard(r, techniqueId);
+  ruleModalBody.querySelectorAll('.copy-btn').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      copyToClipboard(btn.getAttribute('data-copy-text'), btn);
+    });
+  });
+  ruleOverlay.classList.add('show');
+}
+function closeRuleModal(){ ruleOverlay.classList.remove('show'); }
+document.getElementById('ruleModalClose').addEventListener('click', closeRuleModal);
+ruleOverlay.addEventListener('click', e=>{ if(e.target===ruleOverlay) closeRuleModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && ruleOverlay.classList.contains('show')) closeRuleModal(); });
+
+/* ---------------- modal ---------------- */
+const overlay = document.getElementById('overlay');
+function openModal(){
+  const sel = document.getElementById('f-tactic');
+  sel.innerHTML = CANON_TACTICS.map(t=>`<option value="${t.id}">${t.name} (${t.tacticId})</option>`).join('');
+  document.getElementById('f-tid').value='';
+  document.getElementById('f-tname').value='';
+  document.getElementById('f-rule').value='';
+  document.getElementById('formErr').classList.remove('show');
+  overlay.classList.add('show');
+  document.getElementById('f-tid').focus();
+}
+function closeModal(){ overlay.classList.remove('show'); }
+
+document.getElementById('addBtn').addEventListener('click', openModal);
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && overlay.classList.contains('show')) closeModal(); });
+
+document.getElementById('saveBtn').addEventListener('click', ()=>{
+  const tacticId = document.getElementById('f-tactic').value;
+  const tid = document.getElementById('f-tid').value.trim();
+  const tname = document.getElementById('f-tname').value.trim();
+  const rule = document.getElementById('f-rule').value.trim();
+
+  if(!tid || !tname || !rule){
+    document.getElementById('formErr').classList.add('show');
+    return;
+  }
+
+  const tac = state.tactics.find(t=>t.id===tacticId);
+  let te = tac.techniques.find(x=>x.techniqueId.toUpperCase()===tid.toUpperCase());
+  if(!te){
+    te = {techniqueId: tid, name: tname, score:0, color:'#dceefb', rules: []};
+    tac.techniques.push(te);
+  }
+  if(!te.rules.some(r=> ruleKey(r) === rule)) te.rules.push({name: rule, _displayName: rule});
+
+  closeModal();
+  render();
+  showToast(`Added “${rule}” to ${tname} (${tid})`);
+});
+
+/* ---------------- export ---------------- */
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const clean = JSON.parse(JSON.stringify(state));
+  delete clean.stats; // recomputed on load, no need to persist
+  const blob = new Blob([JSON.stringify(clean, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'data.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  showToast('data.json downloaded — commit it to your repo to persist changes');
+});
+
+/* ---------------- toast ---------------- */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 3200);
+}
+
+/* ---------------- boot ---------------- */
+loadData().then(render);
+</script>
+</body>
+</html>

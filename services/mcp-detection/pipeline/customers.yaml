@@ -1,0 +1,68 @@
+customers:
+
+  initech: # Acme
+    base_url: "https://10.0.0.11:8089"
+    verify_ssl: false
+    app: "initech_all_general"     # app namespace to scope/filter by
+    correlation_only: false                   # only keep ES correlation searches
+    output_dir: "rules/splunk/initech/Rules_json"
+    auth:
+      type: token                            # "token" or "basic"
+      token_env: "Splunk_TOKEN_ACME"   # Acme token
+
+  globex: #Umbrella Co
+    base_url: "https://172.19.21.11:8089"
+    verify_ssl: false
+    app: "bc_all_general"
+    correlation_only: false
+    output_dir: "rules/splunk/globex/Rules_json"
+    auth:
+      type: token                            # "token" or "basic"
+      token_env: "Splunk_TOKEN_GLOBEX"
+
+
+# ---------------------------------------------------------------------------
+# Falcon EDR (CrowdStrike) -- used by falcon_export_incidents.py
+# Same secret-resolution rules as above: *_env (preferred) / *_env / prompt.
+#
+# base_url depends on your Falcon cloud region, e.g.:
+#   US-1: https://api.crowdstrike.com
+#   US-2: https://api.us-2.crowdstrike.com
+#   EU-1: https://api.eu-1.crowdstrike.com
+#   US-GOV-1: https://api.laggar.gcw.crowdstrike.com
+#
+# member_cid is only needed if you're using a Flight Control / MSSP parent
+# API key to reach a specific child CID -- omit it if the key is already
+# scoped directly to that one CID.
+# ---------------------------------------------------------------------------
+ 
+ngsiem_customers:  # Falcon EDR
+ 
+  initech: # Acme
+    base_url: "https://api.eu-1.crowdstrike.com"
+    verify_ssl: true
+    member_cid: ""                              # set only if using a Flight Control parent key
+    output_dir: "rules/falcon_edr/initech/Rules_json"
+    client_id_env: "FALCON_CLIENT_ID_ACME"
+    client_secret_env: "FALCON_CLIENT_SECRET_ACME"
+    author_user_uuid: ""                     # set to your own user_uuid, or leave blank for all rules
+ 
+  globex: # Globex
+    base_url: "https://api.eu-1.crowdstrike.com"
+    verify_ssl: true
+    member_cid: ""
+    output_dir: "rules/falcon_edr/globex/Rules_json"
+    client_id_env: "FALCON_CLIENT_ID_GLOBEX"
+    client_secret_env: "FALCON_CLIENT_SECRET_GLOBEX"
+    author_user_uuid: ""                     # set to your own user_uuid, or leave blank for all rules
+ 
+
+
+  hooli: # Hooli
+    base_url: "https://api.eu-1.crowdstrike.com"
+    verify_ssl: true
+    member_cid: ""
+    output_dir: "rules/falcon_edr/hooli/Rules_json"
+    client_id_env: "FALCON_CLIENT_ID_HOOLI"
+    client_secret_env: "FALCON_CLIENT_SECRET_HOOLI"
+    author_user_uuid: ""                     # set to your own user_uuid, or leave blank for all rules

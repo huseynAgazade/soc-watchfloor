@@ -1,0 +1,12 @@
+# The core service only ever asks for the model name `soc-default`.
+# To swap the LLM — local or hosted — change the three lines below. No code change.
+model_list:
+  - model_name: soc-default
+    litellm_params:
+      model: openai/Qwen3-32B          # <- change this line
+      api_base: http://vllm:8000/v1    # <- and this (e.g. an Ollama/hosted endpoint)
+      api_key: os.environ/LLM_API_KEY  # <- and this
+
+litellm_settings:
+  drop_params: true
+  request_timeout: 120

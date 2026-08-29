@@ -1,0 +1,21 @@
+# systemd *user* service — no root needed.
+# Install:
+#   mkdir -p ~/.config/systemd/user
+#   cp deploy/soc-watchfloor.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now soc-watchfloor
+#   loginctl enable-linger "$USER"     # keep it running after logout / across reboots
+[Unit]
+Description=SOC Watchfloor (core on :8000 + connectors + assistant)
+After=network-online.target
+
+[Service]
+Type=forking
+WorkingDirectory=$ROOT
+ExecStart=$ROOT/deploy/run-stack.sh
+ExecStop=$ROOT/deploy/run-stack.sh stop
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

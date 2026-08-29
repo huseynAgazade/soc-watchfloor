@@ -1,0 +1,50 @@
+# secrets & env
+.env
+.env.local
+*.env
+!.env.example
+secrets.txt
+*.pem
+*.key
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# node / next
+node_modules/
+.next/
+out/
+dist/
+build/
+npm-debug.log*
+pnpm-debug.log*
+
+# reference clone (separate repo, not part of this project)
+gitlab-import/
+mockup/
+
+# scratch & os
+scratchpad/
+.DS_Store
+*.log
+coverage/
+
+# local dev databases
+*.db
+
+# local test venv + generated serve copy
+.testvenv/
+serve/
+
+# detection pipeline: secrets + generated rule exports (never commit)
+services/mcp-detection/.env
+services/mcp-detection/secrets.env
+services/mcp-detection/rules/
+services/mcp-detection/pipeline/rules/
+deploy/logs/

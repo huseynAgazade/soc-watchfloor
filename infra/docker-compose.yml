@@ -1,0 +1,102 @@
+# SOC Watchfloor — run on your own machine.
+#   cp .env.example .env      (fill in SPLUNK_PASSWORD or SPLUNK_TOKEN)
+#   docker compose -f infra/docker-compose.yml up --build
+#   open http://localhost:8000/   (first login: admin / SEED_ADMIN_PASSWORD)
+#
+# Postgres data lives in the named volume `pgdata` and survives restarts.
+name: soc-watchfloor
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-watchfloor}
+      POSTGRES_USER: ${POSTGRES_USER:-watchfloor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - pgdata:/var/lib/postgresql/data        # <- permanent DB volume
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-watchfloor}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports: ["5432:5432"]
+
+  # SOAR/SLA connector — talks to Splunk, exposes read-only HTTP to the core.
+  mcp-soar:
+    build: ../services/mcp-soar
+    environment:
+      # Prefer a token against the SIEM head (robust); password/web-login is the fallback.
+      SPLUNK_BASE_URL: ${SPLUNK_SLA_URL:-https://10.0.0.11:8089}
+      SPLUNK_TOKEN: ${SPLUNK_SLA_TOKEN:-}
+      SPLUNK_USERNAME: ${SPLUNK_USERNAME:-socadmin}
+      SPLUNK_PASSWORD: ${SPLUNK_PASSWORD:-}
+      SPLUNK_APP: ${SPLUNK_APP:-search}
+      SPLUNK_VERIFY_SSL: ${SPLUNK_VERIFY_SSL:-false}
+    expose: ["9000"]
+
+  # Roster connector — reads the SOAR monthly_shift_roster list.
+  mcp-roster:
+    build: ../services/mcp-roster
+    environment:
+      SPLUNK_SOAR_URL: ${SPLUNK_SOAR_URL:-}
+      SPLUNK_SOAR_API: ${SPLUNK_SOAR_API:-}
+      SOAR_VERIFY_SSL: ${SOAR_VERIFY_SSL:-false}
+      ROSTER_LIST_ID: ${ROSTER_LIST_ID:-43}
+    expose: ["9000"]
+    expose: ["9000"]
+
+  # Detection connector — runs the export (Splunk + Falcon) and serves ATT&CK coverage.
+  mcp-detection:
+    build: ../services/mcp-detection
+    environment:
+      Splunk_TOKEN_ACME: ${Splunk_TOKEN_ACME:-}
+      Splunk_TOKEN_GLOBEX: ${Splunk_TOKEN_GLOBEX:-}
+      FALCON_CLIENT_ID_ACME: ${FALCON_CLIENT_ID_ACME:-}
+      FALCON_CLIENT_SECRET_ACME: ${FALCON_CLIENT_SECRET_ACME:-}
+      FALCON_CLIENT_ID_GLOBEX: ${FALCON_CLIENT_ID_GLOBEX:-}
+      FALCON_CLIENT_SECRET_GLOBEX: ${FALCON_CLIENT_SECRET_GLOBEX:-}
+      FALCON_CLIENT_ID_HOOLI: ${FALCON_CLIENT_ID_HOOLI:-}
+      FALCON_CLIENT_SECRET_HOOLI: ${FALCON_CLIENT_SECRET_HOOLI:-}
+    expose: ["9000"]
+
+
+
+  # Assistant tool provider — splunk-soar-mcp (read-only, private) + exec bridge.
+  # The core's authorization proxy is the security boundary in front of this.
+  mcp-soar-chat:
+    build: ../services/mcp-soar-chat
+    environment:
+      SPLUNK_SOAR_URL: ${SPLUNK_SOAR_URL:-}
+      SPLUNK_SOAR_API: ${SPLUNK_SOAR_API:-}
+      SOAR_MCP_MODE: readonly
+      SOAR_MCP_VERIFY_SSL: ${SOAR_VERIFY_SSL:-false}
+    expose: ["9011"]
+
+  # Core: auth, RBAC, the live metric endpoints, and it serves the web app.
+  core:
+    build: ../services/core
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-watchfloor}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-watchfloor}
+      MCP_SOAR_URL: http://mcp-soar:9000
+      MCP_ROSTER_URL: http://mcp-roster:9000
+      MCP_DETECTION_URL: http://mcp-detection:9000
+      SOAR_CHAT_BRIDGE_URL: http://mcp-soar-chat:9011
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ASSISTANT_MODEL: ${ASSISTANT_MODEL:-claude-sonnet-5}
+      WEB_DIR: /app/web
+      SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-admin}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-changeme-admin-1234}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+    volumes:
+      - ../prototype:/app/web:ro               # the approved UI (portal.html + login.html)
+    depends_on:
+      postgres: {condition: service_healthy}
+      mcp-soar: {condition: service_started}
+      mcp-roster: {condition: service_started}
+      mcp-detection: {condition: service_started}
+      mcp-soar-chat: {condition: service_started}
+    ports: ["8000:8000"]
+
+volumes:
+  pgdata:

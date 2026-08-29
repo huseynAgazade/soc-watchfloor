@@ -1,0 +1,6 @@
+/* Design tokens are ported from prototype/portal.html (light-default, dark opt-in).
+   Kept minimal here; the full token set lands with the shell port. */
+:root { --plane:#eff1f5; --surface:#fff; --ink:#141922; --accent:#2a4a9c; }
+:root[data-theme="dark"] { --plane:#0f141c; --surface:#161c26; --ink:#e7ecf3; --accent:#6f97e8; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--plane); color: var(--ink); }
