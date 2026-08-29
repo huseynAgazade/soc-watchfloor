@@ -48,3 +48,9 @@ services/mcp-detection/secrets.env
 services/mcp-detection/rules/
 services/mcp-detection/pipeline/rules/
 deploy/logs/
+
+# --- public-demo local artifacts (never commit) ---
+otp-*.png
+*.log
+*.db
+services/core/demo8080.db
