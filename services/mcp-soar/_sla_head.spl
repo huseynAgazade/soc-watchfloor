@@ -1,0 +1,48 @@
+| restsoar soar_server="initech_soar" endpoint="/container?sort=id&order=desc&page_size=3000&created_after="__WIN__"&created_before=now" 
+| rex max_match=0 field=_raw "(?<container_block>\{[^{}]*\"id\":\s?\d+.*?\})" 
+| mvexpand container_block 
+| rex field=container_block "\"create_time\":\s?\"(?<create_time_raw>[^\"]+)\"" 
+| rex field=container_block "\"container_update_time\":\s?\"(?<container_update_raw>[^\"]+)\"" 
+| rex field=container_block "\"incident_category\":\s?\"(?<incident_category>[^\"]+)\"" 
+| rex field=container_block "\"status\":\s?\"(?<status>[^\"]+)\"" 
+| rex field=container_block "\"label\":\s?\"(?<label>[^\"]+)\"" 
+| rex field=container_block "\"name\":\s?\"(?<name>[^\"]+)\"" 
+| rex field=container_block "\"id\":\s?(?<id>\d+)" 
+| rex field=container_block "\"owner_name\":\s?\"(?<owner_name>[^\"]+)\"" 
+| rex field=container_block "\"severity\":\s?\"(?<severity>[^\"]+)\"" 
+| rex field=container_block "\"close_time\":\s?\"(?<close_time_raw>[^\"]+)\"" 
+| spath input=container_block path=custom_fields output=custom_fields_json 
+| spath input=custom_fields_json 
+| fields - custom_fields_json 
+| fields id create_time_raw close_time_raw container_update_raw status label name owner_name severity sla_* active_sla_stage incident_category
+
+| eval earliest_time = "__WIN__", latest_time = "now" 
+```| eval earliest_time = "__WIN__", latest_time = "now" ```
+
+
+| rex field=create_time_raw "(?<time_part>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})" 
+| eval create_time_epoch = strptime(time_part, "%Y-%m-%dT%H:%M:%S") 
+| eval et_epoch = relative_time(now(), earliest_time) 
+| eval lt_epoch = now()
+| where create_time_epoch >= et_epoch AND create_time_epoch <= lt_epoch 
+
+| search NOT sla_owner_name IN ("", "unassigned") NOT status IN (new, "in progress", duplicate, testing) AND label!="" AND NOT label IN (events,test_label)
+
+
+```SLA CALCULATION```
+| eval MTTA_sec=if(sla_assignment_primary_start!="" and sla_assignment_primary_end!="" and sla_assignment_primary_start < sla_assignment_primary_end, 
+strptime(sla_assignment_primary_end, "%Y-%m-%d %H:%M:%S") - strptime(sla_assignment_primary_start, "%Y-%m-%d %H:%M:%S"), 0 )
+| eval MTTT_sec=if(sla_triage_primary_start!="" and sla_triage_primary_end!="" and sla_triage_primary_start < sla_triage_primary_end, 
+strptime(sla_triage_primary_end, "%Y-%m-%d %H:%M:%S") - strptime(sla_triage_primary_start, "%Y-%m-%d %H:%M:%S"), 0 )
+| eval MTTR_sec=if(sla_remediation_primary_start!="" and sla_remediation_primary_end!="" and sla_remediation_primary_start < sla_remediation_primary_end, 
+strptime(sla_remediation_primary_end, "%Y-%m-%d %H:%M:%S") - strptime(sla_remediation_primary_start, "%Y-%m-%d %H:%M:%S"), 0)
+| eval MTTRs_start = strptime(create_time_raw, "%Y-%m-%dT%H:%M:%S.%N%Z")
+| eval MTTRs_end   = strptime(close_time_raw, "%Y-%m-%dT%H:%M:%S.%N%Z")
+| eval MTTRs_sec = (MTTRs_end) - (MTTRs_start)
+| eval MTTT_sec=if((MTTT_sec) > (MTTRs_sec), 0, MTTT_sec)
+| eval MTTCR_sec = if(sla_waiting_customer_start!="" and close_time_raw!="", 
+strptime(close_time_raw, "%Y-%m-%dT%H:%M:%S.%N%Z") - strptime(sla_waiting_customer_start, "%Y-%m-%d %H:%M:%S"), 0 ) 
+| eval MTTR_sec=if((MTTR_sec) < 0 OR (MTTR_sec) == 0, MTTRs_sec-MTTT_sec-MTTA_sec-MTTCR_sec, MTTR_sec)
+| eval MTTR_sec=if((MTTR_sec) < 0, 0, MTTR_sec)
+
+

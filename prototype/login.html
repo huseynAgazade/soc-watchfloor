@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in · SOC Watchfloor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --plane:#eff1f5; --surface:#fff; --ink:#141922; --ink-2:#525c6e; --ink-3:#87909f;
+         --rule:#e0e4eb; --rule-2:#cbd2dd; --accent:#2a4a9c; --accent-ink:#2a4a9c;
+         --accent-soft:#eaf0fa; --good:#1f8a43; --critical:#c2352f; --critical-bg:#fbeceb; --critical-ink:#a12b26; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --plane:#0f141c; --surface:#161c26; --ink:#e7ecf3; --ink-2:#aab4c2; --ink-3:#7c869a;
+    --rule:#26303d; --rule-2:#333f4f; --accent:#6f97e8; --accent-ink:#9db9f0; --accent-soft:#1b2740;
+    --critical:#e0655e; --critical-bg:#341d1d; --critical-ink:#f0a29c; } }
+  *{box-sizing:border-box}
+  body{margin:0; min-height:100vh; background:var(--plane); color:var(--ink);
+       font-family:"IBM Plex Sans",system-ui,sans-serif; display:grid; place-items:center; padding:24px}
+  .card{width:100%; max-width:380px; background:var(--surface); border:1px solid var(--rule);
+        border-radius:12px; box-shadow:0 12px 40px -18px rgba(20,25,34,.3); padding:28px 26px}
+  .brand{display:flex; align-items:center; gap:10px; margin-bottom:20px}
+  .mark{width:30px; height:30px; border-radius:6px; background:var(--accent); display:grid; place-items:center;
+        color:#fff; font-family:"IBM Plex Mono",monospace; font-weight:600}
+  .brand b{font-size:15px; letter-spacing:-.01em} .brand span{display:block; font-family:"IBM Plex Mono",monospace;
+        font-size:10px; color:var(--ink-3); letter-spacing:.08em}
+  h1{font-size:15px; margin:0 0 3px} .sub{color:var(--ink-3); font-size:12.5px; margin:0 0 18px}
+  label{display:block; font-size:11px; font-weight:600; color:var(--ink-2); margin:12px 0 5px}
+  input{width:100%; padding:9px 11px; border:1px solid var(--rule-2); border-radius:7px; background:var(--surface);
+        color:var(--ink); font-size:13px; font-family:inherit}
+  input:focus{outline:2px solid color-mix(in srgb,var(--accent) 40%,transparent); border-color:var(--accent)}
+  .otp{display:none}
+  button{width:100%; margin-top:18px; padding:10px; border:0; border-radius:7px; background:var(--accent);
+         color:#fff; font-size:13px; font-weight:600; cursor:pointer}
+  button:hover{opacity:.92} button:disabled{opacity:.55; cursor:default}
+  .err{display:none; margin-top:14px; padding:9px 11px; border-radius:7px; background:var(--critical-bg);
+       color:var(--critical-ink); font-size:12px; border:1px solid color-mix(in srgb,var(--critical) 30%,transparent)}
+  .note{margin-top:16px; font-size:11px; color:var(--ink-3); line-height:1.5}
+</style>
+</head>
+<body>
+  <form class="card" id="f" autocomplete="on">
+    <div class="brand"><div class="mark">W</div><div><b>Watchfloor</b><span>SOC OPS</span></div></div>
+    <h1>Sign in</h1>
+    <p class="sub">Accounts are provisioned by an administrator.</p>
+    <label for="u">Username</label>
+    <input id="u" name="username" autocomplete="username" autofocus>
+    <label for="p">Password</label>
+    <input id="p" name="password" type="password" autocomplete="current-password">
+    <div class="otp" id="otpWrap">
+      <label for="o">One-time code</label>
+      <input id="o" name="otp" inputmode="numeric" autocomplete="one-time-code" placeholder="123456">
+    </div>
+    <button id="btn" type="submit">Sign in</button>
+    <div class="err" id="err"></div>
+    <p class="note">Change your temporary password at first sign-in. One-time codes appear only if enabled for your account.</p>
+  </form>
+<script>
+(function(){
+  var f=document.getElementById("f"), btn=document.getElementById("btn"), err=document.getElementById("err");
+  function fail(m){ err.textContent=m; err.style.display="block"; }
+  f.addEventListener("submit", async function(e){
+    e.preventDefault(); err.style.display="none"; btn.disabled=true; btn.textContent="Signing in…";
+    var body={ username:f.username.value.trim(), password:f.password.value };
+    if(f.otp.value) body.otp=f.otp.value.trim();
+    try{
+      var r=await fetch("/auth/login",{method:"POST",headers:{"content-type":"application/json"},
+                                       credentials:"same-origin",body:JSON.stringify(body)});
+      if(r.ok){ window.location.href="/"; return; }
+      if(r.status===401){
+        // reveal the OTP field in case the account needs it
+        document.getElementById("otpWrap").style.display="block";
+        fail("Invalid username, password or code.");
+      } else if(r.status===423){ fail("Account temporarily locked. Try again shortly.");
+      } else { fail("Sign-in failed ("+r.status+")."); }
+    }catch(ex){ fail("Cannot reach the server."); }
+    btn.disabled=false; btn.textContent="Sign in";
+  });
+})();
+</script>
+</body>
+</html>

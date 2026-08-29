@@ -1,0 +1,36 @@
+# SOC Watchfloor — CI. Lints and builds each app/service; nothing here needs
+# production secrets. Deploy stages are intentionally omitted until staging exists.
+stages: [check, build]
+
+web:lint:
+  stage: check
+  image: node:22-alpine
+  rules: [{ changes: ["apps/web/**/*"] }]
+  script:
+    - cd apps/web
+    - npm install
+    - npm run build
+
+core:check:
+  stage: check
+  image: python:3.12-slim
+  rules: [{ changes: ["services/core/**/*"] }]
+  script:
+    - cd services/core
+    - pip install -r requirements.txt
+    - python -c "import app.main; print('core imports ok')"
+
+mcp:check:
+  stage: check
+  image: python:3.12-slim
+  rules: [{ changes: ["services/mcp-*/**/*"] }]
+  script:
+    - for d in services/mcp-*; do echo "== $d =="; python "$d/server.py"; done
+
+docker:build:
+  stage: build
+  image: docker:27
+  services: [docker:27-dind]
+  rules: [{ if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH' }]
+  script:
+    - docker compose -f infra/docker-compose.yml build
