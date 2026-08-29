@@ -18,6 +18,16 @@ assistant — all multi-tenant and driven by one shared tool layer.
 > grown into it. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full
 > design and the reasoning behind it.
 
+## Demo
+
+A walkthrough of the portal: server-side auth gate, TOTP (one-time-code) login,
+the multi-tenant dashboards, user & access management, and the LLM assistant
+querying SOAR through the authorization proxy. All data shown is synthetic.
+
+https://github.com/huseynAgazade/soc-watchfloor/raw/main/docs/demo.mp4
+
+> If the player doesn't load inline, [download/watch `docs/demo.mp4`](docs/demo.mp4).
+
 ## Run it (Docker)
 
 ```bash
