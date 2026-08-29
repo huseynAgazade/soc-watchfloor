@@ -1,6 +1,6 @@
 # mcp-soar-chat
 
-The **assistant's** tool provider: [YOUR_ORG/splunk-soar-mcp](https://github.com/YOUR_ORG/splunk-soar-mcp)
+The **assistant's** tool provider: [huseynAgazade/splunk-soar-mcp](https://github.com/huseynAgazade/splunk-soar-mcp)
 run as a private, **read-only** MCP server, plus a thin `facade.py` bridge the core
 calls to execute an already-authorized tool.
 
