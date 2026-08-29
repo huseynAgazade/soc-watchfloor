@@ -9,12 +9,23 @@ from __future__ import annotations
 
 import os
 
-from fastapi import APIRouter
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
+from ..deps import current_user, get_db
 
 router = APIRouter()
+
+
+async def _maybe_user(request: Request, db: AsyncSession):
+    """Resolve the session cookie to a user, or None if unauthenticated —
+    used to gate page delivery server-side (no auth-only-in-JavaScript)."""
+    try:
+        return await current_user(request, db)
+    except HTTPException:
+        return None
 
 _SKELETON = ('<!doctype html><html lang="en"><head><meta charset="utf-8">'
              '<meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -29,8 +40,13 @@ def _read(name: str) -> str | None:
         return f.read()
 
 
-@router.get("/", response_class=HTMLResponse)
-async def index() -> HTMLResponse:
+@router.get("/")
+async def index(request: Request, db: AsyncSession = Depends(get_db)):
+    # Auth is enforced server-side: the portal page (and its data) is never
+    # delivered to an unauthenticated caller — they are redirected to /login.
+    user = await _maybe_user(request, db)
+    if user is None:
+        return RedirectResponse("/login", status_code=302)
     body = _read("portal.html")
     if body is None:
         return HTMLResponse("<h1>portal.html not mounted</h1>"
