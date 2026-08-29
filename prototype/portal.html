@@ -1032,7 +1032,7 @@ td.n, th.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant
       host.addEventListener("click",function(e){
         var b=e.target.closest("[data-tab]"); if(!b) return;
         $$("[data-tab]",host).forEach(function(x){ x.setAttribute("aria-selected",String(x===b)); });
-        $$(".tabpanel").forEach(function(pn){ pn.classLofftoggle("active", pn.id==="tab-"+b.dataset.tab); });
+        $$(".tabpanel").forEach(function(pn){ pn.classList.toggle("active", pn.id==="tab-"+b.dataset.tab); });
         if(onchange) onchange(b.dataset.tab);
       });
     }
@@ -1051,10 +1051,10 @@ td.n, th.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant
     }
     function require(root,names){
       var ok=true;
-      $$(".f",root).forEach(function(d){ d.classLoffremove("bad"); });
+      $$(".f",root).forEach(function(d){ d.classList.remove("bad"); });
       names.forEach(function(n){
         var d=$$(".f",root).filter(function(x){return x.dataset.name===n;})[0];
-        if(d && !d._input.value.trim()){ d.classLoffadd("bad"); ok=false; }
+        if(d && !d._input.value.trim()){ d.classList.add("bad"); ok=false; }
       });
       return ok;
     }
@@ -1143,7 +1143,7 @@ td.n, th.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant
   }
   function show(name){
     state.view=name;
-    $$(".view").forEach(function(v){ v.classLofftoggle("active", v.id==="view-"+name); });
+    $$(".view").forEach(function(v){ v.classList.toggle("active", v.id==="view-"+name); });
     $$(".nav-item").forEach(function(b){ if(b.dataset.view===name) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
     setHeader(); window.scrollTo(0,0);
   }
@@ -1152,12 +1152,12 @@ td.n, th.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant
   });
 
   /* ---------------- popovers ---------------- */
-  function closePops(){ $$(".pop").forEach(function(p){p.classLoffremove("open");}); $$(".ctl-btn").forEach(function(b){b.setAttribute("aria-expanded","false");}); }
+  function closePops(){ $$(".pop").forEach(function(p){p.classList.remove("open");}); $$(".ctl-btn").forEach(function(b){b.setAttribute("aria-expanded","false");}); }
   function wirePop(btnId,popId){
     var btn=$(btnId), pop=$(popId);
     btn.addEventListener("click",function(e){ e.stopPropagation();
-      var open=pop.classLoffcontains("open"); closePops();
-      if(!open){ pop.classLoffadd("open"); btn.setAttribute("aria-expanded","true"); }
+      var open=pop.classList.contains("open"); closePops();
+      if(!open){ pop.classList.add("open"); btn.setAttribute("aria-expanded","true"); }
     });
     pop.addEventListener("click",function(e){ e.stopPropagation(); });
   }
@@ -1207,10 +1207,10 @@ td.n, th.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant
 
   var STAMP=["updated 19 Aug 09:14","recalculated 19 Aug 09:16","recalculated 19 Aug 09:21","recalculated 19 Aug 09:27"], stampIx=0;
   function refresh(reason){
-    document.body.classLoffadd("busy");
+    document.body.classList.add("busy");
     setTimeout(function(){
       renderAll();
-      document.body.classLoffremove("busy");
+      document.body.classList.remove("busy");
       if(reason==="period"){ stampIx=(stampIx+1)%STAMP.length; $("#stampText").textContent=STAMP[stampIx]; }
     },420);
   }
@@ -1394,7 +1394,7 @@ td.n, th.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant
       [["M","Morning 08–16"],["E","Evening 16–00"],["N","Night 00–08"],["O","day off"],["L","leave"]].map(function(l){
         return '<span style="display:inline-flex; align-items:center; gap:5px"><i class="sh '+SC[l[0]].cls+'" style="display:inline-block;width:26px;text-align:center">'+SC[l[0]].g+'</i>'+l[1]+'</span>';
       }).join("")+'</span>'+
-      '<span class="note" style="margin-left:auto">Read from SOAR list 43 — the monthly roster the SOC keeps. Assigning shifts writes back to the same loff</span>';
+      '<span class="note" style="margin-left:auto">Read from SOAR list 43 — the monthly roster the SOC keeps. Assigning shifts writes back to the same list.</span>';
     card.appendChild(lg);
     split.appendChild(card);
 
@@ -1483,7 +1483,7 @@ td.n, th.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant
     right.appendChild(oc);
 
     var dist=el("div","card");
-    doffinnerHTML='<div class="card-head"><h3>Rotation balance</h3><span class="hint">weeks held</span></div>';
+    dist.innerHTML='<div class="card-head"><h3>Rotation balance</h3><span class="hint">weeks held</span></div>';
     var db=el("div","card-body"); db.style.cssText="display:flex; flex-direction:column; gap:9px; font-size:12px";
     var counts={};
     ENG_WEEKS.forEach(function(w){ counts[w.u]=(counts[w.u]||0)+1; });
@@ -1492,7 +1492,7 @@ td.n, th.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant
       d.innerHTML='<span style="flex:1">'+ui.esc(dsp(u))+'</span><div class="meter" style="max-width:120px"><i style="width:'+(counts[u]/2*100)+'%; background:var(--s3)"></i></div><span class="num sub">'+counts[u]+'</span>';
       db.appendChild(d);
     });
-    doffappendChild(db); right.appendChild(dist);
+    dist.appendChild(db); right.appendChild(dist);
     split.appendChild(right);
     host.appendChild(split);
 
@@ -1514,7 +1514,7 @@ td.n, th.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant
     ADAYS.forEach(function(d,i){
       var b=el("button","daypick"); b.type="button";
       b.innerHTML='<span style="font-size:8px; color:var(--ink-3)">'+d.w+'</span><b>'+d.d+'</b>';
-      b.addEventListener("click",function(){ picked[i]=!picked[i]; b.classLofftoggle("on",picked[i]); updCount(); });
+      b.addEventListener("click",function(){ picked[i]=!picked[i]; b.classList.toggle("on",picked[i]); updCount(); });
       grid.appendChild(b);
     });
     var counter=el("p","note","No days selected.");
@@ -1523,7 +1523,7 @@ td.n, th.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant
     [["Weekdays",function(d){return !d.we;}],["Weekends",function(d){return d.we;}],["All",function(){return true;}],["Clear",null]].forEach(function(q){
       var b=el("button","btn"); b.type="button"; b.textContent=q[0]; b.style.fontSize="11px";
       b.addEventListener("click",function(){
-        $$(".daypick",grid).forEach(function(cell,i){ var on=q[1]?q[1](ADAYS[i]):false; picked[i]=on; cell.classLofftoggle("on",on); });
+        $$(".daypick",grid).forEach(function(cell,i){ var on=q[1]?q[1](ADAYS[i]):false; picked[i]=on; cell.classList.toggle("on",on); });
         updCount();
       });
       quick.appendChild(b);
@@ -1554,13 +1554,13 @@ td.n, th.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant
     var personSel=ui.field({name:"p",label:"Engineer",type:"select",required:true,
       options:engs.map(function(x){return {id:x.u,n:x.n+" · "+x.phone};}),
       hint:"Assign one engineer to one or more on-call weeks in a single pass."});
-    var list=el("div"); loffstyle.cssText="display:flex; flex-direction:column; gap:6px";
+    var list=el("div"); list.style.cssText="display:flex; flex-direction:column; gap:6px";
     ENG_WEEKS.forEach(function(w,i){
       var cur=person(w.u);
       var b=el("button","weekpick"); b.type="button";
       b.innerHTML='<span class="mono">'+w.start+' – '+w.end+'</span><span class="sub" style="margin-left:auto">currently '+ui.esc(cur?cur.n:w.u)+'</span>';
-      b.addEventListener("click",function(){ picked[i]=!picked[i]; b.classLofftoggle("on",picked[i]); });
-      loffappendChild(b);
+      b.addEventListener("click",function(){ picked[i]=!picked[i]; b.classList.toggle("on",picked[i]); });
+      list.appendChild(b);
     });
     ui.modal({
       title:"Assign on-call weeks", sub:"Give one engineer several weeks at once",
@@ -2559,10 +2559,10 @@ td.n, th.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant
     var sm=$("#srcSummary"); sm.innerHTML="";
     Object.keys(SRC).forEach(function(k){
       var list=METRICS.filter(function(m){return m.src===k;});
-      if(!lofflength) return;
+      if(!list.length) return;
       var d=el("div"); d.style.cssText="display:flex; align-items:center; gap:9px; font-size:12.5px";
       d.innerHTML='<span class="chip '+SRC[k][1]+'"><span class="dot"></span>'+SRC[k][0]+'</span>'+
-        '<span style="flex:1; color:var(--ink-2)">'+lofflength+' metric'+(lofflength===1?'':'s')+'</span>'+
+        '<span style="flex:1; color:var(--ink-2)">'+list.length+' metric'+(list.length===1?'':'s')+'</span>'+
         '<span class="mono sub">'+(k==="splunk"?"editable SPL":"read-only binding")+'</span>';
       sm.appendChild(d);
     });
