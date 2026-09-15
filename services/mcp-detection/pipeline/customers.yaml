@@ -1,6 +1,6 @@
 customers:
 
-  initech: # Acme
+  initech: # Initech
     base_url: "https://10.0.0.11:8089"
     verify_ssl: false
     app: "initech_all_general"     # app namespace to scope/filter by
@@ -8,12 +8,12 @@ customers:
     output_dir: "rules/splunk/initech/Rules_json"
     auth:
       type: token                            # "token" or "basic"
-      token_env: "Splunk_TOKEN_ACME"   # Acme token
+      token_env: "Splunk_TOKEN_ACME"   # Initech token
 
   globex: #Umbrella Co
-    base_url: "https://172.19.21.11:8089"
+    base_url: "https://10.0.0.13:8089"
     verify_ssl: false
-    app: "bc_all_general"
+    app: "globex_all_general"
     correlation_only: false
     output_dir: "rules/splunk/globex/Rules_json"
     auth:
@@ -38,7 +38,7 @@ customers:
  
 ngsiem_customers:  # Falcon EDR
  
-  initech: # Acme
+  initech: # Initech
     base_url: "https://api.eu-1.crowdstrike.com"
     verify_ssl: true
     member_cid: ""                              # set only if using a Flight Control parent key

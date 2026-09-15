@@ -8,11 +8,26 @@ class LoginIn(BaseModel):
     username: str
     password: str
     otp: str | None = None
+    website: str | None = None   # honeypot — people never see it, so it must stay empty
 
 
 class ChangePasswordIn(BaseModel):
     current_password: str
     new_password: str
+
+
+class TotpEnrollIn(BaseModel):
+    password: str                      # re-authentication before any enrolment
+    otp: str | None = None             # a current code, required when already enrolled
+
+
+class TotpVerifyIn(BaseModel):
+    code: str
+
+
+class AdminSetPasswordIn(BaseModel):
+    password: str
+    require_change: bool = True        # user must pick their own at next sign-in
 
 
 class MeOut(BaseModel):
@@ -39,7 +54,8 @@ class UserCreateIn(BaseModel):
     grade: str = ""
     grants: list[str] = []
     allowed_customer_ids: list[str] = []
-    temporary_password: str = Field(min_length=8)
+    temporary_password: str            # set by the admin; checked against the password policy
+    require_password_change: bool = True
     require_otp: bool = True
 
 

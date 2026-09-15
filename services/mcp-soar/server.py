@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from mcp.server.fastmcp import FastMCP
 
+import queries
 import tools
 from splunk_client import SplunkClient
 
@@ -35,33 +36,33 @@ def get_sla_by_customer(window: str = "7d", tenant: str = "all") -> list[dict]:
 
     Returns one row per customer with MTTA, MTTT, MTTR, MTTTres and MTTCR (mean
     seconds) plus compliance % for each stage, computed exactly like the SOC
-    Incident Overview dashboard. window: 24h|7d|30d|60d. tenant: a customer id
-    or "all".
+    Incident Overview dashboard. window: 24h|7d|30d|60d|90d. tenant: a customer
+    id or "all".
     """
-    return tools.get_sla_by_customer(client(), window, tenant)
+    return tools.get_sla_by_customer(client(), *queries.bounds_for_window(window), tenant)
 
 
 @mcp.tool()
 def get_analyst_performance(window: str = "30d") -> list[dict]:
     """Per-analyst performance: cases owned, triage p50, MTTA, MTTR, MTTTres
     (mean seconds) and triage-SLA compliance %. Automation service accounts are
-    excluded. window: 7d|30d|60d.
+    excluded. window: 7d|30d|60d|90d.
     """
-    return tools.get_analyst_performance(client(), window)
+    return tools.get_analyst_performance(client(), *queries.bounds_for_window(window))
 
 
 @mcp.tool()
-def get_status_mix(window: str = "7d") -> list[dict]:
-    """Case-outcome distribution by SOAR status (count and percent) for resolved,
-    assigned cases in the window."""
-    return tools.get_status_mix(client(), window)
+def get_status_mix(window: str = "7d", tenant: str = "all") -> list[dict]:
+    """Case counts by customer and SOAR status for resolved, assigned cases in
+    the window. window: 24h|7d|30d|60d|90d."""
+    return tools.get_status_mix(client(), *queries.bounds_for_window(window), tenant)
 
 
 @mcp.tool()
 def get_case_volume(window: str = "7d", tenant: str = "all") -> list[dict]:
-    """Case counts broken down by customer and severity. window: 24h|7d|30d|60d.
+    """Case counts broken down by customer and severity. window: 24h|7d|30d|60d|90d.
     tenant: a customer id or "all"."""
-    return tools.get_case_volume(client(), window, tenant)
+    return tools.get_case_volume(client(), *queries.bounds_for_window(window), tenant)
 
 
 if __name__ == "__main__":

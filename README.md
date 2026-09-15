@@ -92,11 +92,3 @@ TOTP, Redis-backed sessions. Every query is tenant-scoped server-side. Admin-
 edited SIEM queries are read-only, tokenized (`$index$/$earliest$/$latest$`),
 validated, versioned and audited. Never commit secrets; they are injected at
 runtime. See `docs/ARCHITECTURE.md` §4 and §11.
-
-## Acknowledgements
-
-The assistant's SOAR tool layer is provided by
-[**huseynAgazade/splunk-soar-mcp**](https://github.com/huseynAgazade/splunk-soar-mcp) —
-a read-only Model Context Protocol server for Splunk SOAR. This project wraps it
-behind a role- and tenant-scoped authorization proxy so a language model can
-query SOAR safely (the model proposes tools; the proxy enforces what actually runs).
