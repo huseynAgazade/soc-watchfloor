@@ -1,7 +1,8 @@
 # SOC Watchfloor — run on your own machine.
 #   cp .env.example .env      (fill in SPLUNK_PASSWORD or SPLUNK_TOKEN)
 #   docker compose -f infra/docker-compose.yml up --build
-#   open http://localhost:8000/   (first login: admin / SEED_ADMIN_PASSWORD)
+#   open http://localhost:8000/   (first login: admin / SEED_ADMIN_PASSWORD, or the
+#                                  generated password printed in the core log)
 #
 # Postgres data lives in the named volume `pgdata` and survives restarts.
 name: soc-watchfloor
@@ -33,17 +34,18 @@ services:
       SPLUNK_PASSWORD: ${SPLUNK_PASSWORD:-}
       SPLUNK_APP: ${SPLUNK_APP:-search}
       SPLUNK_VERIFY_SSL: ${SPLUNK_VERIFY_SSL:-false}
+      ORG_TIMEZONE: ${ORG_TIMEZONE:-Asia/Dubai}
     expose: ["9000"]
 
   # Roster connector — reads the SOAR monthly_shift_roster list.
   mcp-roster:
     build: ../services/mcp-roster
     environment:
-      SPLUNK_SOAR_URL: ${SPLUNK_SOAR_URL:-}
+      SPLUNK_SOAR_URL: ${SPLUNK_SOAR_URL:-https://soar.example}
       SPLUNK_SOAR_API: ${SPLUNK_SOAR_API:-}
       SOAR_VERIFY_SSL: ${SOAR_VERIFY_SSL:-false}
-      ROSTER_LIST_ID: ${ROSTER_LIST_ID:-43}
-    expose: ["9000"]
+      ROSTER_LIST_NAME: ${ROSTER_LIST_NAME:-monthly_shift_roster}
+      ORG_TIMEZONE: ${ORG_TIMEZONE:-Asia/Dubai}
     expose: ["9000"]
 
   # Detection connector — runs the export (Splunk + Falcon) and serves ATT&CK coverage.
@@ -67,7 +69,7 @@ services:
   mcp-soar-chat:
     build: ../services/mcp-soar-chat
     environment:
-      SPLUNK_SOAR_URL: ${SPLUNK_SOAR_URL:-}
+      SPLUNK_SOAR_URL: ${SPLUNK_SOAR_URL:-https://soar.example}
       SPLUNK_SOAR_API: ${SPLUNK_SOAR_API:-}
       SOAR_MCP_MODE: readonly
       SOAR_MCP_VERIFY_SSL: ${SOAR_VERIFY_SSL:-false}
@@ -86,8 +88,10 @@ services:
       ASSISTANT_MODEL: ${ASSISTANT_MODEL:-claude-sonnet-5}
       WEB_DIR: /app/web
       SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-admin}
-      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-changeme-admin-1234}
+      # empty → a random admin password is generated and printed once to the core log
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      ORG_TIMEZONE: ${ORG_TIMEZONE:-Asia/Dubai}
     volumes:
       - ../prototype:/app/web:ro               # the approved UI (portal.html + login.html)
     depends_on:

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!--wf:head-->
+<link rel="stylesheet" href="/static/pages.css">
+<script src="/static/consent.js"></script>
+</head>
+<body>
+<div class="page">
+  <a class="top" href="/"><span class="mark" aria-hidden="true">W</span><span><b>Watchfloor</b><small>SOC OPS</small></span></a>
+  <main class="doc">
+    <h1>Terms and conditions</h1>
+    <p class="meta">Effective <span class="ph">[effective date]</span> · for everyone with a SOC Watchfloor account at <span class="ph">[Company legal name]</span></p>
+
+    <p class="draft"><strong>Draft for review.</strong> These terms describe how the portal works today. Items in dashed boxes, liability and governing law must be confirmed by <span class="ph">[Company]</span>'s legal team before this page is relied on. Where these terms conflict with your employment or service contract or with company security policy, that contract or policy prevails.</p>
+
+    <h2 id="scope">1. What these terms cover</h2>
+    <p>SOC Watchfloor is an internal portal for operating the security operations centre: service levels per customer, analyst performance, rotas, detection coverage, agentic AI performance and an AI assistant. By signing in you agree to these terms and to the <a href="/privacy">privacy policy</a>.</p>
+
+    <h2 id="accounts">2. Accounts</h2>
+    <ul>
+      <li>Accounts are created only by an administrator, for people who need the portal for their work. Each account is personal.</li>
+      <li>Do not share your password, one-time codes or session with anyone, including colleagues. Choose a password of at least 14 characters that you do not use elsewhere.</li>
+      <li>Tell <span class="ph">[security contact]</span> immediately if you think your account or a password has been exposed.</li>
+      <li>After {{LOCKOUT_ATTEMPTS}} wrong passwords an account is locked for a while, and repeated failures from one address are throttled.</li>
+    </ul>
+
+    <h2 id="use">3. Acceptable use</h2>
+    <ul>
+      <li>Use the portal only for your SOC duties and only for the customers assigned to you.</li>
+      <li>Do not try to reach data outside your access — for example other customers' cases, other people's saved chats or administrative functions — even where a mistake seems to allow it. Report such gaps instead.</li>
+      <li>Do not probe, scan, load-test, scrape or automate the portal without written approval from <span class="ph">[security contact]</span>.</li>
+      <li>Queries you write must be read-only; the portal refuses writing commands, and trying to get around that is misuse.</li>
+    </ul>
+
+    <h2 id="confidentiality">4. Confidentiality</h2>
+    <p>Everything in the portal — customer names, cases, detections, SLA figures, rotas and colleague data — is confidential. Share it only through approved company channels and only with people entitled to it. Do not copy it to personal devices, personal accounts or public AI tools.</p>
+
+    <h2 id="assistant">5. The AI assistant</h2>
+    <ul>
+      <li>The assistant is powered by Anthropic's Claude. Your questions, the chat so far and the data its tools return are sent to Anthropic to produce answers.</li>
+      <li>Answers can be incomplete or wrong. Check the figures and the queries it shows before you act on them, and never treat an answer as approval for an action on a customer system.</li>
+      <li>Do not paste passwords, API keys, tokens or other secrets into the assistant.</li>
+      <li>The assistant can only do what your account can do; its tool calls are limited and recorded.</li>
+    </ul>
+
+    <h2 id="monitoring">6. Monitoring</h2>
+    <p>For security and accountability, sign-ins, administrative changes, queries, assistant questions and tool calls are recorded in an audit trail with your username and time, and may be reviewed by <span class="ph">[authorised roles]</span>.</p>
+
+    <h2 id="availability">7. Availability and accuracy</h2>
+    <p>The portal shows data from Splunk, Splunk SOAR, the shift roster and CrowdStrike Falcon. It can lag behind those systems — for example, detection rules are re-exported daily — and may be unavailable during maintenance or incidents. It is provided to support your work, without a guarantee that it is complete, current or uninterrupted.</p>
+
+    <h2 id="suspension">8. Suspension</h2>
+    <p>Administrators may disable an account at any time, including when these terms or company policy are breached or when access is no longer needed. Misuse may lead to disciplinary or legal steps under <span class="ph">[applicable policy / contract]</span>.</p>
+
+    <h2 id="liability">9. Liability</h2>
+    <p><span class="ph">[Liability wording to be provided by legal.]</span></p>
+
+    <h2 id="law">10. Changes and governing law</h2>
+    <p>We may update these terms; the effective date above shows the current version, and significant changes will be announced in the portal. These terms are governed by <span class="ph">[governing law and jurisdiction]</span>. Questions: <span class="ph">[contact e-mail]</span>.</p>
+
+    <a class="cta" href="/">Back to Watchfloor</a>
+  </main>
+  <nav class="foot" aria-label="Legal"><a href="/privacy">Privacy policy</a><a href="/terms" aria-current="page">Terms and conditions</a><button type="button" data-cookie-settings>Cookie settings</button></nav>
+</div>
+</body>
+</html>

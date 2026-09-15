@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!--wf:head-->
+<link rel="stylesheet" href="/static/pages.css">
+<script src="/static/consent.js"></script>
+</head>
+<body>
+<div class="page">
+  <a class="top" href="/"><span class="mark" aria-hidden="true">W</span><span><b>Watchfloor</b><small>SOC OPS</small></span></a>
+  <main class="doc">
+    <h1>Privacy policy</h1>
+    <p class="meta">Effective <span class="ph">[effective date]</span> · applies to SOC Watchfloor, the internal operations portal of <span class="ph">[Company legal name]</span></p>
+
+    <p class="draft"><strong>Draft for review.</strong> The facts about what the portal does are accurate for this build. Items in dashed boxes, the legal bases and the retention periods not set by the portal must be confirmed by <span class="ph">[Company]</span>'s legal team or data-protection officer before this page is relied on.</p>
+
+    <h2 id="who">1. Who is responsible</h2>
+    <p><span class="ph">[Company legal name]</span>, <span class="ph">[registered address]</span>, is the controller of the personal data processed in SOC Watchfloor. Questions and requests: <span class="ph">[privacy contact e-mail]</span><span class="ph">[data-protection officer, if appointed]</span>.</p>
+
+    <h2 id="what">2. What we process and why</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Data</th><th>Purpose</th><th>Basis</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Account details</strong> — name, username, work e-mail, phone, chat handle, role, team, grade, the customers (tenants) you may see</td><td>Provide your account, show the rotas and route work to the right people</td><td>Employment / service contract</td></tr>
+        <tr><td><strong>Sign-in security</strong> — password (stored only as an Argon2 hash), one-time-code secret if you enrol, sessions, failed sign-in counts, temporary locks</td><td>Keep accounts and customer data secure</td><td>Legitimate interest in security; legal security obligations</td></tr>
+        <tr><td><strong>Audit trail</strong> — sign-ins, administrative changes, queries run, questions to the assistant and the tools it used, refusals, with time and username</td><td>Security monitoring, investigating misuse, accountability to customers</td><td>Legitimate interest; contractual obligations to customers</td></tr>
+        <tr><td><strong>Your work data</strong> — SOC cases you handled, your SLA and triage times, rota shifts, drawn from Splunk, Splunk SOAR and the shift roster</td><td>Operate the SOC, measure service levels, plan shifts</td><td>Employment / service contract; legitimate interest</td></tr>
+        <tr><td><strong>Assistant conversations</strong> — your questions, the answers and the data the tools returned</td><td>Answer your questions and let you reopen past chats</td><td>Legitimate interest</td></tr>
+        <tr><td><strong>Usage statistics</strong> — how often each page is opened, per day and role; no name, no address</td><td>Improve the portal</td><td>Your consent (cookie banner)</td></tr>
+      </tbody>
+    </table></div>
+    <p>The portal also shows security data about our customers' systems. Where that includes personal data of customer staff, we process it on the customer's behalf under our service agreement with them.</p>
+
+    <h2 id="recipients">3. Who receives data</h2>
+    <ul>
+      <li><strong>Anthropic (Claude API)</strong> — when you use the assistant, your question, the earlier turns of that chat and the results of the tools it runs (which can include case and SLA data of the customers you may see) are sent to Anthropic to generate the answer. <span class="ph">[Confirm the data-processing agreement, region and retention terms with Anthropic.]</span></li>
+      <li><strong>Our own security platforms</strong> — Splunk, Splunk SOAR and CrowdStrike Falcon are read by the portal; the portal does not send your personal data to them beyond the service accounts it uses.</li>
+      <li>No advertising, analytics or social-media third parties. Fonts and icons are served by the portal itself.</li>
+      <li>Authorities, where the law requires it.</li>
+    </ul>
+
+    <h2 id="retention">4. How long we keep it</h2>
+    <ul>
+      <li>Sessions: end after {{SESSION_HOURS}} hours, or after {{IDLE_MINUTES}} minutes without activity, or when you sign out.</li>
+      <li>Saved assistant chats: deleted automatically {{CHAT_DAYS}} days after the last question in them; you can delete them yourself at any time.</li>
+      <li>Usage statistics: daily counts are kept for up to {{USAGE_DAYS}} days.</li>
+      <li>Accounts: disabled, not deleted, when you leave, so the audit trail stays attributable; kept for <span class="ph">[retention period]</span>.</li>
+      <li>Audit trail: kept for <span class="ph">[retention period]</span>. It is not deleted automatically by the portal today.</li>
+    </ul>
+
+    <h2 id="cookies">5. Cookies and browser storage</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Name</th><th>Type</th><th>Why</th><th>Lifetime</th></tr></thead>
+      <tbody>
+        <tr><td><code>watchfloor_session</code></td><td>Cookie, essential</td><td>Keeps you signed in. HttpOnly, never readable by scripts; holds only a random token.</td><td>{{SESSION_HOURS}} hours or until sign-out</td></tr>
+        <tr><td><code>wf.consent</code></td><td>Browser storage, essential</td><td>Remembers your cookie choice</td><td>Until you clear it</td></tr>
+        <tr><td><code>wf.chat</code></td><td>Browser storage, functional</td><td>Reopens the assistant chat you had open</td><td>Until you clear it</td></tr>
+      </tbody>
+    </table></div>
+    <p>Usage statistics are counted only if you choose "Allow usage statistics". You can change your choice at any time: <a href="#cookies" data-cookie-settings>Cookie settings</a>, or Settings → Privacy &amp; cookies in the portal.</p>
+
+    <h2 id="security">6. How we protect it</h2>
+    <p>Encrypted connections (HTTPS), hashed passwords, optional one-time codes, account lockout and sign-in throttling, server-enforced customer scoping on every request, and an audit trail of access. Administrators create accounts; there are no shared passwords.</p>
+
+    <h2 id="rights">7. Your rights</h2>
+    <p>Under <span class="ph">[applicable data-protection law]</span> you can ask for access to your data, correction, deletion or restriction, object to processing based on legitimate interest, and withdraw consent for usage statistics at any time without affecting earlier processing. Some data — such as the audit trail — may be kept where we must retain it for security or legal reasons. Contact <span class="ph">[privacy contact e-mail]</span>. You may also complain to <span class="ph">[supervisory authority]</span>.</p>
+
+    <h2 id="changes">8. Changes</h2>
+    <p>We will update this page when the portal's processing changes and show the new effective date above.</p>
+
+    <a class="cta" href="/">Back to Watchfloor</a>
+  </main>
+  <nav class="foot" aria-label="Legal"><a href="/privacy" aria-current="page">Privacy policy</a><a href="/terms">Terms and conditions</a><button type="button" data-cookie-settings>Cookie settings</button></nav>
+</div>
+</body>
+</html>

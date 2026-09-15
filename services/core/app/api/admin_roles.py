@@ -29,6 +29,7 @@ CAP_LABEL = {
     Capability.approve_reports: "Approve customer-facing SLA reports",
     Capability.cross_tenant: "Cross-tenant scope",
     Capability.edit_data_sources: "Edit data-source queries (SPL)",
+    Capability.run_adhoc_queries: "Write and run own read-only SPL (query console, assistant)",
     Capability.manage_users: "Create, edit and disable users",
     Capability.manage_tenants: "Create and archive tenants",
     Capability.manage_roles: "Edit the role matrix",

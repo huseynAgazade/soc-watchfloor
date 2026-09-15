@@ -3,26 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sign in · SOC Watchfloor</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!--wf:head-->
+<script src="/static/consent.js"></script>
 <style>
-  :root{ --plane:#eff1f5; --surface:#fff; --ink:#141922; --ink-2:#525c6e; --ink-3:#87909f;
-         --rule:#e0e4eb; --rule-2:#cbd2dd; --accent:#2a4a9c; --accent-ink:#2a4a9c;
+  :root{ --plane:#eff1f5; --surface:#fff; --ink:#141922; --ink-2:#525c6e; --ink-3:#636b7a;
+         --rule:#e0e4eb; --rule-2:#cbd2dd; --accent:#2a4a9c; --accent-ink:#2a4a9c; --on-accent:#fff;
          --accent-soft:#eaf0fa; --good:#1f8a43; --critical:#c2352f; --critical-bg:#fbeceb; --critical-ink:#a12b26; }
   @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-    --plane:#0f141c; --surface:#161c26; --ink:#e7ecf3; --ink-2:#aab4c2; --ink-3:#7c869a;
-    --rule:#26303d; --rule-2:#333f4f; --accent:#6f97e8; --accent-ink:#9db9f0; --accent-soft:#1b2740;
+    --plane:#0f141c; --surface:#161c26; --ink:#e7ecf3; --ink-2:#aab4c2; --ink-3:#8f98a8;
+    --rule:#26303d; --rule-2:#333f4f; --accent:#6f97e8; --accent-ink:#9db9f0; --on-accent:#0f141c; --accent-soft:#1b2740;
     --critical:#e0655e; --critical-bg:#341d1d; --critical-ink:#f0a29c; } }
   *{box-sizing:border-box}
   body{margin:0; min-height:100vh; background:var(--plane); color:var(--ink);
-       font-family:"IBM Plex Sans",system-ui,sans-serif; display:grid; place-items:center; padding:24px}
-  .card{width:100%; max-width:380px; background:var(--surface); border:1px solid var(--rule);
+       font-family:"IBM Plex Sans",system-ui,sans-serif; display:grid; place-items:center; padding:24px 16px}
+  .wrap{width:100%; max-width:380px}
+  .card{width:100%; background:var(--surface); border:1px solid var(--rule);
         border-radius:12px; box-shadow:0 12px 40px -18px rgba(20,25,34,.3); padding:28px 26px}
   .brand{display:flex; align-items:center; gap:10px; margin-bottom:20px}
   .mark{width:30px; height:30px; border-radius:6px; background:var(--accent); display:grid; place-items:center;
-        color:#fff; font-family:"IBM Plex Mono",monospace; font-weight:600}
+        color:var(--on-accent); font-family:"IBM Plex Mono",monospace; font-weight:600}
   .brand b{font-size:15px; letter-spacing:-.01em} .brand span{display:block; font-family:"IBM Plex Mono",monospace;
         font-size:10px; color:var(--ink-3); letter-spacing:.08em}
   h1{font-size:15px; margin:0 0 3px} .sub{color:var(--ink-3); font-size:12.5px; margin:0 0 18px}
@@ -30,53 +29,152 @@
   input{width:100%; padding:9px 11px; border:1px solid var(--rule-2); border-radius:7px; background:var(--surface);
         color:var(--ink); font-size:13px; font-family:inherit}
   input:focus{outline:2px solid color-mix(in srgb,var(--accent) 40%,transparent); border-color:var(--accent)}
+  input[aria-invalid="true"]{border-color:var(--critical)}
+  .ferr{margin-top:5px; font-size:11.5px; color:var(--critical-ink)}
   .otp{display:none}
-  button{width:100%; margin-top:18px; padding:10px; border:0; border-radius:7px; background:var(--accent);
-         color:#fff; font-size:13px; font-weight:600; cursor:pointer}
-  button:hover{opacity:.92} button:disabled{opacity:.55; cursor:default}
+  [hidden]{display:none !important}
+  .hp{position:absolute; left:-10000px; width:1px; height:1px; overflow:hidden}
+  .primary{width:100%; margin-top:18px; padding:10px; border:0; border-radius:7px; background:var(--accent);
+         color:var(--on-accent); font-size:13px; font-weight:600; cursor:pointer; font-family:inherit}
+  .primary:hover{filter:brightness(1.08)} .primary:disabled{opacity:.55; cursor:default}
+  .primary:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
   .err{display:none; margin-top:14px; padding:9px 11px; border-radius:7px; background:var(--critical-bg);
        color:var(--critical-ink); font-size:12px; border:1px solid color-mix(in srgb,var(--critical) 30%,transparent)}
-  .note{margin-top:16px; font-size:11px; color:var(--ink-3); line-height:1.5}
+  .note{margin-top:16px; font-size:11.5px; color:var(--ink-3); line-height:1.5}
+  .legal{display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-top:16px; font-size:12px}
+  .legal a, .legal button{color:var(--ink-3); background:none; border:0; padding:0; font:inherit; cursor:pointer; text-decoration:underline}
+  .legal a:hover, .legal button:hover{color:var(--ink)}
 </style>
 </head>
 <body>
-  <form class="card" id="f" autocomplete="on">
-    <div class="brand"><div class="mark">W</div><div><b>Watchfloor</b><span>SOC OPS</span></div></div>
+<main class="wrap">
+  <form class="card" id="f" autocomplete="on" novalidate>
+    <div class="brand"><div class="mark" aria-hidden="true">W</div><div><b>Watchfloor</b><span>SOC OPS</span></div></div>
     <h1>Sign in</h1>
     <p class="sub">Accounts are provisioned by an administrator.</p>
     <label for="u">Username</label>
-    <input id="u" name="username" autocomplete="username" autofocus>
+    <input id="u" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required maxlength="64" aria-describedby="u-err" autofocus>
+    <div class="ferr" id="u-err" hidden></div>
     <label for="p">Password</label>
-    <input id="p" name="password" type="password" autocomplete="current-password">
+    <input id="p" name="password" type="password" autocomplete="current-password" required maxlength="1024" aria-describedby="p-err">
+    <div class="ferr" id="p-err" hidden></div>
     <div class="otp" id="otpWrap">
       <label for="o">One-time code</label>
-      <input id="o" name="otp" inputmode="numeric" autocomplete="one-time-code" placeholder="123456">
+      <input id="o" name="otp" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" maxlength="6" pattern="[0-9]{6}" aria-describedby="o-err">
+      <div class="ferr" id="o-err" hidden></div>
     </div>
-    <button id="btn" type="submit">Sign in</button>
-    <div class="err" id="err"></div>
-    <p class="note">Change your temporary password at first sign-in. One-time codes appear only if enabled for your account.</p>
+    <div class="hp" aria-hidden="true"><label for="website">Leave this field empty</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+    <button class="primary" id="btn" type="submit">Sign in</button>
+    <div class="err" id="err" role="alert"></div>
+    <p class="note">Your administrator creates your account and gives you its password. One-time codes appear only if enabled for your account.</p>
   </form>
+
+  <form class="card" id="c" autocomplete="off" novalidate hidden>
+    <div class="brand"><div class="mark" aria-hidden="true">W</div><div><b>Watchfloor</b><span>SOC OPS</span></div></div>
+    <h1>Choose your own password</h1>
+    <p class="sub">The password your administrator set has to be replaced before you continue.</p>
+    <div id="curWrap" hidden>
+      <label for="cp">Current password</label>
+      <input id="cp" type="password" autocomplete="current-password" aria-describedby="cp-err">
+      <div class="ferr" id="cp-err" hidden></div>
+    </div>
+    <label for="np">New password</label>
+    <input id="np" type="password" autocomplete="new-password" minlength="14" maxlength="1024" required aria-describedby="np-err np-hint">
+    <div class="ferr" id="np-err" hidden></div>
+    <label for="rp">Repeat new password</label>
+    <input id="rp" type="password" autocomplete="new-password" minlength="14" maxlength="1024" required aria-describedby="rp-err">
+    <div class="ferr" id="rp-err" hidden></div>
+    <button class="primary" id="cbtn" type="submit">Set password and continue</button>
+    <div class="err" id="cerr" role="alert"></div>
+    <p class="note" id="np-hint">At least 14 characters, and different from the password you were given. Other sessions of your account are signed out.</p>
+  </form>
+  <nav class="legal" aria-label="Legal"><a href="/privacy">Privacy policy</a><a href="/terms">Terms</a><button type="button" data-cookie-settings>Cookie settings</button></nav>
+</main>
 <script>
 (function(){
   var f=document.getElementById("f"), btn=document.getElementById("btn"), err=document.getElementById("err");
-  function fail(m){ err.textContent=m; err.style.display="block"; }
+  var c=document.getElementById("c"), cbtn=document.getElementById("cbtn"), cerr=document.getElementById("cerr");
+  var $=function(id){ return document.getElementById(id); };
+  var current=null;   // the password just used to sign in, if any
+  function fail(box,m){ box.textContent=m; box.style.display="block"; }
+  function detail(d,status){
+    if(d && typeof d.detail==="string") return d.detail;
+    if(d && Array.isArray(d.detail)) return d.detail.map(function(x){return x.msg;}).join("; ");
+    return "Request failed ("+status+").";
+  }
+  /* field errors: shown under the field, announced by screen readers via aria-describedby */
+  function mark(input,msg){
+    var box=$(input.id+"-err");
+    if(msg){ input.setAttribute("aria-invalid","true"); if(box){ box.textContent=msg; box.hidden=false; } }
+    else { input.removeAttribute("aria-invalid"); if(box){ box.textContent=""; box.hidden=true; } }
+    return !msg;
+  }
+  function firstInvalid(form){ var x=form.querySelector('[aria-invalid="true"]'); if(x) x.focus(); }
+  ["u","p","o","cp","np","rp"].forEach(function(id){ var i=$(id); if(i) i.addEventListener("input",function(){ mark(i,null); }); });
+  function showChange(pw){
+    current=pw; f.hidden=true; c.hidden=false;
+    $("curWrap").hidden=!!pw;
+    (pw?$("np"):$("cp")).focus();
+  }
+
   f.addEventListener("submit", async function(e){
-    e.preventDefault(); err.style.display="none"; btn.disabled=true; btn.textContent="Signing in…";
-    var body={ username:f.username.value.trim(), password:f.password.value };
-    if(f.otp.value) body.otp=f.otp.value.trim();
+    e.preventDefault(); err.style.display="none";
+    var u=$("u"), p=$("p"), o=$("o"), otpShown=$("otpWrap").style.display==="block";
+    var ok=[
+      mark(u, !u.value.trim() ? "Enter your username." : (u.value.trim().length>64 ? "Usernames are at most 64 characters." : null)),
+      mark(p, !p.value ? "Enter your password." : null),
+      mark(o, otpShown && o.value && !/^\d{6}$/.test(o.value.trim()) ? "The code is six digits." : null)
+    ].every(Boolean);
+    if(!ok){ firstInvalid(f); return; }
+    btn.disabled=true; btn.textContent="Signing in…";
+    var body={ username:u.value.trim(), password:p.value };
+    if(o.value) body.otp=o.value.trim();
+    if($("website").value) body.website=$("website").value;
     try{
       var r=await fetch("/auth/login",{method:"POST",headers:{"content-type":"application/json"},
                                        credentials:"same-origin",body:JSON.stringify(body)});
-      if(r.ok){ window.location.href="/"; return; }
+      if(r.ok){
+        var d=await r.json().catch(function(){return {};});
+        if(d.must_change_password){ showChange(body.password); btn.disabled=false; btn.textContent="Sign in"; return; }
+        window.location.href="/"; return;
+      }
       if(r.status===401){
         // reveal the OTP field in case the account needs it
-        document.getElementById("otpWrap").style.display="block";
-        fail("Invalid username, password or code.");
-      } else if(r.status===423){ fail("Account temporarily locked. Try again shortly.");
-      } else { fail("Sign-in failed ("+r.status+")."); }
-    }catch(ex){ fail("Cannot reach the server."); }
+        $("otpWrap").style.display="block";
+        fail(err,"Invalid username, password or code.");
+      } else if(r.status===423){ fail(err,"Account temporarily locked. Try again shortly.");
+      } else if(r.status===429){ fail(err,"Too many failed sign-ins from this network. "+detail(await r.json().catch(function(){return {};}),429).replace(/^.*— /,"").replace(/^./,function(ch){return ch.toUpperCase();})+".");
+      } else { fail(err,"Sign-in failed ("+r.status+")."); }
+    }catch(ex){ fail(err,"Cannot reach the server."); }
     btn.disabled=false; btn.textContent="Sign in";
   });
+
+  c.addEventListener("submit", async function(e){
+    e.preventDefault(); cerr.style.display="none";
+    var np=$("np"), rp=$("rp"), cp=$("cp");
+    var cur=current!=null?current:cp.value;
+    var ok=[
+      current!=null || mark(cp, !cp.value ? "Enter your current password." : null),
+      mark(np, np.value.length<14 ? "Use at least 14 characters." : (np.value===cur ? "Choose a password different from your current one." : null)),
+      mark(rp, rp.value!==np.value ? "The two new passwords differ." : null)
+    ].every(Boolean);
+    if(!ok){ firstInvalid(c); return; }
+    cbtn.disabled=true; cbtn.textContent="Saving…";
+    try{
+      var r=await fetch("/auth/change-password",{method:"POST",headers:{"content-type":"application/json"},
+                         credentials:"same-origin",body:JSON.stringify({current_password:cur,new_password:np.value})});
+      if(r.ok){ window.location.href="/"; return; }
+      if(r.status===401){ c.hidden=true; f.hidden=false; fail(err,"Your session ended — sign in again."); }
+      else { fail(cerr, detail(await r.json().catch(function(){return {};}), r.status)); }
+    }catch(ex){ fail(cerr,"Cannot reach the server."); }
+    cbtn.disabled=false; cbtn.textContent="Set password and continue";
+  });
+
+  // arriving from the portal with a session that still has to change its password
+  if(/[?&]change=1\b/.test(location.search)){
+    fetch("/auth/me",{credentials:"same-origin"}).then(function(r){ return r.ok?r.json():null; })
+      .then(function(me){ if(me && me.must_change_password) showChange(null); }).catch(function(){});
+  }
 })();
 </script>
 </body>

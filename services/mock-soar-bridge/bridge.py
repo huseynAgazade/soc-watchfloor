@@ -33,7 +33,7 @@ C = [
     {"id": 5006, "name": "WebShield WAF — XSS probe",            "label": "acme_corp",   "status": "open",       "severity": "medium", "create_time": "2026-08-29T08:12:00Z"},
     {"id": 5005, "name": "CrowdStrike — suspicious PowerShell",  "label": "initech",     "status": "in_progress","severity": "high",   "create_time": "2026-08-29T07:55:00Z"},
     {"id": 5004, "name": "Phishing report — credential lure",   "label": "initech",     "status": "new",        "severity": "medium", "create_time": "2026-08-29T07:20:00Z"},
-    {"id": 5003, "name": "Impossible travel — VPN + Baku",      "label": "umbrella_co", "status": "resolved",   "severity": "low",    "create_time": "2026-08-28T22:03:00Z"},
+    {"id": 5003, "name": "Impossible travel — VPN + Dubai",      "label": "umbrella_co", "status": "resolved",   "severity": "low",    "create_time": "2026-08-28T22:03:00Z"},
     {"id": 5002, "name": "Multiple failed logins — brute force","label": "globex_co",   "status": "open",       "severity": "medium", "create_time": "2026-08-28T19:31:00Z"},
     {"id": 5001, "name": "Sysmon — scheduled task created",     "label": "hooli_media", "status": "closed",     "severity": "low",    "create_time": "2026-08-28T14:10:00Z"},
 ]

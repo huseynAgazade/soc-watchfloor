@@ -34,6 +34,7 @@ class Capability(StrEnum):
     manage_tenants = "manage_tenants"
     change_auth_policy = "change_auth_policy"
     edit_data_sources = "edit_data_sources"       # editable SPL / query catalog
+    run_adhoc_queries = "run_adhoc_queries"       # write + run own read-only SPL (console, assistant)
     manage_roles = "manage_roles"                 # edit the role->capability matrix
 
 
@@ -59,7 +60,7 @@ ROLE_CAPABILITIES: dict[Role, set[Capability]] = {
         Capability.view_dashboards, Capability.use_assistant,
         Capability.view_own_performance, Capability.view_team_performance,
         Capability.approve_absences, Capability.edit_detection,
-        Capability.cross_tenant,
+        Capability.cross_tenant, Capability.run_adhoc_queries,
     },
     Role.soc_manager: set(Capability),  # everything
 }

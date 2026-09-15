@@ -1,29 +1,43 @@
 """HTTP facade for the detection connector.
 
 Serves ATT&CK coverage + rule inventory computed from the pipeline's
-_all_rules_combined.json (the team's export scripts, now run here). /refresh re-runs
-the export (poll Splunk + Falcon) and rebuilds — that is the on-demand path; a
-scheduler does the same on a cadence. Read-only toward the SIEM/EDR.
+_all_rules_combined.json (the export scripts from detection-attck-mapper, run
+here). The export is re-run daily, at start-up when the data is over a day old,
+and on demand via POST /refresh — see refresher.py. Read-only toward the SIEM/EDR.
 """
 from __future__ import annotations
 
 import datetime
 import os
-import subprocess
-import sys
-import threading
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
 
 import adapter
-
-app = FastAPI(title="mcp-detection HTTP facade", version="0.1.0")
+from refresher import Refresher
 
 _HERE = os.path.dirname(__file__)
 COMBINED = os.environ.get("DETECTION_COMBINED_JSON",
                           os.path.join(_HERE, "pipeline", "rules", "_all_rules_combined.json"))
-_cache: dict = {"data": None, "built_at": None, "synced_at": None}
-_refresh_lock = threading.Lock()
+REFRESHER = Refresher(
+    os.path.join(_HERE, "pipeline"), COMBINED,
+    secrets_file=os.environ.get("DETECTION_SECRETS_FILE", os.path.join(_HERE, "secrets.env")),
+    at=os.environ.get("DETECTION_REFRESH_AT", "06:00"),
+    tz=os.environ.get("ORG_TIMEZONE", "Asia/Dubai"),
+    timeout=int(os.environ.get("DETECTION_REFRESH_TIMEOUT", "900")),
+)
+_cache: dict = {"rules": None, "synced_at": None}
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    if os.environ.get("DETECTION_REFRESH_ENABLED", "true").lower() not in ("0", "false", "no"):
+        REFRESHER.start_scheduler()
+    yield
+
+
+app = FastAPI(title="mcp-detection HTTP facade", version="0.3.0", lifespan=lifespan)
 
 
 def _synced_at() -> str | None:
@@ -34,14 +48,14 @@ def _synced_at() -> str | None:
         return None
 
 
-def _data() -> dict:
+def _rules() -> list[dict]:
     synced = _synced_at()
-    if _cache["data"] is None or _cache["synced_at"] != synced:
+    if _cache["rules"] is None or _cache["synced_at"] != synced:
         if not os.path.isfile(COMBINED):
             raise HTTPException(503, "no detection export yet — run /refresh")
-        _cache["data"] = adapter.build(COMBINED)
+        _cache["rules"] = adapter.load(COMBINED)
         _cache["synced_at"] = synced
-    return _cache["data"]
+    return _cache["rules"]
 
 
 @app.get("/health")
@@ -50,31 +64,27 @@ def health() -> dict:
 
 
 @app.get("/detection")
-def detection() -> dict:
-    d = dict(_data())
+def detection(tenants: str | None = None) -> dict:
+    """Coverage + inventory. Without `tenants`, every tenant; with it (comma-
+    separated, possibly empty), only those tenants."""
+    scope = None if tenants is None else [t for t in tenants.split(",") if t]
+    d = adapter.dataset(_rules(), scope)
     d["synced_at"] = _synced_at()
     return d
 
 
-def _run_export() -> None:
-    pipe = os.path.join(_HERE, "pipeline")
-    subprocess.run([sys.executable, "automatic.py", "--config", "customers.yaml",
-                    "--combined-output", "rules/_all_rules_combined.json"],
-                   cwd=pipe, check=False)
+@app.get("/status")
+def status() -> dict:
+    """When the rules were last synced, the last attempt and its outcome, and the next scheduled run."""
+    return REFRESHER.status()
+
+
+class RefreshIn(BaseModel):
+    trigger: str = Field("manual", max_length=96)
 
 
 @app.post("/refresh")
-def refresh() -> dict:
-    """Kick off a re-export (poll Splunk + Falcon) in the background. The dataset
-    updates once it finishes; poll /health synced_at to see the new timestamp."""
-    if not _refresh_lock.acquire(blocking=False):
-        return {"status": "already-running"}
-
-    def _job():
-        try:
-            _run_export()
-        finally:
-            _refresh_lock.release()
-
-    threading.Thread(target=_job, daemon=True).start()
-    return {"status": "started", "was_synced_at": _synced_at()}
+def refresh(body: RefreshIn | None = None) -> dict:
+    """Start a re-export (poll Splunk + Falcon) in the background. Poll /status."""
+    started = REFRESHER.start((body.trigger if body else "manual") or "manual")
+    return {**REFRESHER.status(), "status": started}

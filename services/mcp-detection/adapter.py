@@ -4,6 +4,10 @@ Coverage is counted at the TOP-LEVEL technique (T1078, not T1078.004) against
 MITRE's per-tactic top-level totals, consistently. A technique mapped only by a
 DISABLED rule is a phantom cell. Operational/health and TEST rules are separated
 from real detections so they never inflate coverage.
+
+A dataset can be built for a subset of tenants (a caller's scope): the rules, the
+per-tenant breakdowns and the "all" roll-up are then computed over that subset
+only, so a scoped caller never receives another customer's rule or figure.
 """
 from __future__ import annotations
 
@@ -25,6 +29,7 @@ CANON = [
 ]
 BYCODE = {c: (s, n, tot) for s, n, c, tot in CANON}
 CUST = {"initech": "initech", "globex": "umbrella_co", "hooli": "hooli_media"}
+TENANTS = ["umbrella_co", "initech", "hooli_media", "acme_corp", "globex_co"]
 TOP_TOTAL = 211
 OPS_KW = re.compile(r"log ingestion|license|heartbeat|sensor status|customer_response|baseline|"
                     r"not sending heartbeat|interval scheduled|tracker", re.I)
@@ -71,10 +76,18 @@ def _flatten(combined):
     return rules
 
 
-def build(combined_path: str) -> dict:
-    combined = json.load(open(combined_path))
-    rules = _flatten(combined)
-    tenants = ["umbrella_co", "initech", "hooli_media", "acme_corp", "globex_co"]
+def load(combined_path: str) -> list[dict]:
+    with open(combined_path) as f:
+        return _flatten(json.load(f))
+
+
+def dataset(rules: list[dict], scope: list[str] | set[str] | None = None) -> dict:
+    """scope None → every tenant; otherwise only the given tenant ids."""
+    tenants = sorted(set(TENANTS) | {r["tenant"] for r in rules})
+    if scope is not None:
+        allowed = set(scope)
+        rules = [r for r in rules if r["tenant"] in allowed]
+        tenants = [t for t in tenants if t in allowed]
 
     def summarize(t):
         subset = [r for r in rules if t == "all" or r["tenant"] == t]
@@ -143,6 +156,10 @@ def build(combined_path: str) -> dict:
         data["tactics"][t] = s["tactics"]
         data["tech"][t] = tech_detail(t)
     return data
+
+
+def build(combined_path: str, scope: list[str] | set[str] | None = None) -> dict:
+    return dataset(load(combined_path), scope)
 
 
 if __name__ == "__main__":

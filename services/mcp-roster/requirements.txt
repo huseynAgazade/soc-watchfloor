@@ -2,3 +2,4 @@ mcp==1.2.0
 httpx==0.28.1
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
+tzdata==2025.2

@@ -70,8 +70,10 @@ class SplunkClient:
         return h
 
     # ---- search ----
-    def oneshot(self, spl: str) -> list[dict]:
-        """Run a blocking search and return the result rows as dicts.
+    def oneshot(self, spl: str, earliest: float | None = None, latest: float | None = None,
+                count: int = 0) -> list[dict]:
+        """Run a blocking search and return the result rows as dicts. earliest /
+        latest (epoch seconds) bound the search job; count caps the rows (0 = all).
 
         With a token (preferred), go straight to the REST API on :8089 with a
         Bearer header — robust, no session to expire. Without one, fall back to
@@ -82,10 +84,12 @@ class SplunkClient:
             url = f"{self.base}/services/search/jobs"
         else:
             url = f"{self.base}/en-US/splunkd/__raw/servicesNS/{self.user}/{self.app}/search/jobs"
-        r = self._c.post(
-            url, headers=self._headers(),
-            data={"search": spl, "exec_mode": "oneshot", "output_mode": "json", "count": "0"},
-        )
+        data = {"search": spl, "exec_mode": "oneshot", "output_mode": "json", "count": str(count)}
+        if earliest is not None:
+            data["earliest_time"] = f"{earliest:.0f}"
+        if latest is not None:
+            data["latest_time"] = f"{latest:.0f}"
+        r = self._c.post(url, headers=self._headers(), data=data)
         if r.status_code != 200:
             raise SplunkError(f"search HTTP {r.status_code}: {r.text[:200]}")
         data = r.json()
