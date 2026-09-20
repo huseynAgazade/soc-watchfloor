@@ -92,3 +92,12 @@ TOTP, Redis-backed sessions. Every query is tenant-scoped server-side. Admin-
 edited SIEM queries are read-only, tokenized (`$index$/$earliest$/$latest$`),
 validated, versioned and audited. Never commit secrets; they are injected at
 runtime. See `docs/ARCHITECTURE.md` §4 and §11.
+
+---
+
+## How this was built
+
+Written with an AI coding assistant. Still scaffolding — the approved UI is the static
+prototype in `prototype/portal.html`, and the services are being grown into it. All data
+shown is synthetic, as noted above; the assistant reaches SOAR only through a read-only,
+role- and tenant-scoped authorization proxy, which is the part worth reviewing.
